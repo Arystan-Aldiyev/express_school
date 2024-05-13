@@ -3,8 +3,7 @@ const router = express.Router();
 const authController = require('../controllers/auth.controller');
 const { checkDuplicateEmail, checkDuplicatePhoneNumber } = require('../middleware/verifySignUp');
 
-
-
+// Middleware to set headers
 module.exports = function(app) {
     app.use(function(req, res, next) {
         res.header(
@@ -13,9 +12,9 @@ module.exports = function(app) {
         );
         next();
     });
-}
+};
 
-
+// Define the routes
 router.post('/signup', [checkDuplicateEmail, checkDuplicatePhoneNumber], authController.signup);
 router.post('/signin', authController.signin);
 

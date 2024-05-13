@@ -1,8 +1,11 @@
 const express = require('express'); 
 const cors = require('cors');
-const {sequelize} = require('./models')
+const { sequelize } = require('./models');
 const bodyParser = require('body-parser');
 const authRoutes = require('./routes/auth.routes');
+
+
+const {verifyToken} = require('./middleware/authJwt');
 
 const app = express();
 
@@ -16,29 +19,16 @@ app.use(express.urlencoded({ extended: true }));
 app.use(bodyParser.json());
 
 
-const db = require("./models");
-
-
-
 app.get("/", (req, res) => {
     res.json({ message: "Welcome to the application." });
 });
 
+//check token
+app.get("/api/auth/checkToken", [verifyToken], (req, res) => {
+    res.status(200).send({ message: "Token is valid!", userId: req.userId, userRole: req.userRole });
+});
 
 
-app.get("/api/users", (req, res) => {
-    db.user.findAll()
-        .then(data => {
-            res.send(data);
-        })
-        .catch(err => {
-            res.status(500).send({
-                message:
-                    err.message || "Some error occurred while retrieving users."
-            });
-        });
-}
-);
 
 app.use('/api/auth', authRoutes);
 

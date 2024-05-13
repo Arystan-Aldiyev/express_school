@@ -1,7 +1,9 @@
 const jwt = require('jsonwebtoken');
-const secretKey = 'your_secret_jwt_key';  // Replace with your secret key
+const config = require('../config/auth.config');
 
-exports.verifyToken = (req, res, next) => {
+const secretKey = config.secret;
+
+const verifyToken = (req, res, next) => {
     let token = req.headers["authorization"];
 
     if (!token) {
@@ -21,8 +23,6 @@ exports.verifyToken = (req, res, next) => {
     });
 };
 
-const authJwt = {
+module.exports = {
     verifyToken
 };
-
-module.exports = authJwt;

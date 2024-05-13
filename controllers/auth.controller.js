@@ -1,10 +1,8 @@
 const db = require('../models');
 const User = db.user;
-const config = require('../config/auth.config');
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
-
-const secretKey = 'your_secret_jwt_key';  
+const config = require('../config/auth.config');
 
 exports.signup = async (req, res) => {
     try {
@@ -49,4 +47,3 @@ exports.signin = async (req, res) => {
         res.status(500).send({ message: "Login failed.", error: error.message });
     }
 };
-
