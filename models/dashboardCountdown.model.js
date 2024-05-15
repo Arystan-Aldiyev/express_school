@@ -17,7 +17,14 @@ module.exports = (sequelize, Sequelize) => {
             type: Sequelize.DATE,
             defaultValue: Sequelize.NOW
         }
-    });
+        
+  
+    }, 
+    {
+        timestamps: false, 
+        createdAt: 'created_at',
+    }
+);
 
     return DashboardCountdown;
 };

@@ -14,7 +14,74 @@ module.exports = function(app) {
     });
 };
 
-// Define the routes
+/**
+ * @swagger
+ * components:
+ *   schemas:
+ *     User:
+ *       type: object
+ *       required:
+ *         - name
+ *         - email
+ *         - password
+ *         - role
+ *         - phone_number
+ *       properties:
+ *         name:
+ *           type: string
+ *         email:
+ *           type: string
+ *         password:
+ *           type: string
+ *         role:
+ *           type: string
+ *         phone_number:
+ *           type: string
+ * 
+ * /api/auth/signup:
+ *   post:
+ *     summary: Register a new user
+ *     tags: [Authentication]
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             $ref: '#/components/schemas/User'
+ *     responses:
+ *       201:
+ *         description: User registered successfully
+ *       500:
+ *         description: Failed to register user
+ * 
+ * /api/auth/signin:
+ *   post:
+ *     summary: Login a user
+ *     tags: [Authentication]
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required:
+ *               - email
+ *               - password
+ *             properties:
+ *               email:
+ *                 type: string
+ *               password:
+ *                 type: string
+ *     responses:
+ *       200:
+ *         description: User logged in successfully
+ *       401:
+ *         description: Invalid password
+ *       404:
+ *         description: User not found
+ *       500:
+ *         description: Login failed
+ */
 router.post('/signup', [checkDuplicateEmail, checkDuplicatePhoneNumber], authController.signup);
 router.post('/signin', authController.signin);
 

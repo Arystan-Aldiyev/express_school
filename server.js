@@ -4,6 +4,8 @@ const { sequelize } = require('./models');
 const bodyParser = require('body-parser');
 const authRoutes = require('./routes/auth.routes');
 const dashboardRoutes = require('./routes/dashboard.routes');
+const swaggerUi = require('swagger-ui-express');
+const swaggerSpec = require('./config/swaggerConfig');
 
 
 const {verifyToken} = require('./middleware/authJwt');
@@ -20,19 +22,16 @@ app.use(express.urlencoded({ extended: true }));
 app.use(bodyParser.json());
 
 
-app.get("/", (req, res) => {
-    res.json({ message: "Welcome to the application." });
-});
 
-//check token
-app.get("/api/auth/checkToken", [verifyToken], (req, res) => {
-    res.status(200).send({ message: "Token is valid!", userId: req.userId, userRole: req.userRole });
-});
+
+
 
 
 
 app.use('/api/auth', authRoutes);
 app.use('/api/dashboard', dashboardRoutes);
+
+app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerSpec));
 
 sequelize.sync()
   .then(() => {
