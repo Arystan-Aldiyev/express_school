@@ -33,9 +33,8 @@ db.answer = require('./answer.model.js')(sequelize, Sequelize);
 db.notification = require('./notification.model.js')(sequelize, Sequelize);
 db.post = require('./post.model.js')(sequelize, Sequelize);
 db.message = require('./message.model.js')(sequelize, Sequelize);
-
-
-
+db.dashboardAnnouncement = require('./dashboardAnnouncement.model.js')(sequelize, Sequelize);
+db.dashboardCountdown = require('./dashboardCountdown.model.js')(sequelize, Sequelize);
 
 db.group.belongsTo(db.user, { foreignKey: 'teacher_id', as: 'teacher' });
 db.user.hasMany(db.group, { foreignKey: 'teacher_id', as: 'groups' });
@@ -77,5 +76,7 @@ db.message.belongsTo(db.user, { foreignKey: 'sender_id' });
 db.user.hasMany(db.message, { as: 'sentMessages', foreignKey: 'sender_id' });
 db.user.hasMany(db.message, { as: 'receivedMessages', foreignKey: 'student_id' });
 
+db.dashboardAnnouncement.belongsTo(db.user, { foreignKey: 'author_id' });
+db.user.hasMany(db.dashboardAnnouncement, { foreignKey: 'author_id' });
 
 module.exports = db;

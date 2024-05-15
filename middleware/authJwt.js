@@ -23,6 +23,15 @@ const verifyToken = (req, res, next) => {
     });
 };
 
+const verifyIsAdmin = (req, res, next) => {
+    if (req.userRole === 'admin') {
+        next();
+    } else {
+        res.status(403).send({ message: "Require Admin Role!" });
+    }
+};
+
 module.exports = {
-    verifyToken
+    verifyToken,
+    verifyIsAdmin
 };

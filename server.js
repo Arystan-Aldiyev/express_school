@@ -3,6 +3,7 @@ const cors = require('cors');
 const { sequelize } = require('./models');
 const bodyParser = require('body-parser');
 const authRoutes = require('./routes/auth.routes');
+const dashboardRoutes = require('./routes/dashboard.routes');
 
 
 const {verifyToken} = require('./middleware/authJwt');
@@ -31,6 +32,7 @@ app.get("/api/auth/checkToken", [verifyToken], (req, res) => {
 
 
 app.use('/api/auth', authRoutes);
+app.use('/api/dashboard', dashboardRoutes);
 
 sequelize.sync()
   .then(() => {
