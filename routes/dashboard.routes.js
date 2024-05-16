@@ -4,6 +4,10 @@ const router = express.Router();
 const { verifyToken, verifyIsAdmin } = require('../middleware/authJwt');
 const dashboardController = require('../controllers/dashboard.controller');
 
+const multer = require('multer');
+const upload = multer({ storage: multer.memoryStorage() });
+
+
 /**
  * @swagger
  * components:
@@ -25,7 +29,7 @@ const dashboardController = require('../controllers/dashboard.controller');
  *     requestBody:
  *       required: true
  *       content:
- *         application/json:
+ *         multipart/form-data:
  *           schema:
  *             type: object
  *             required:
@@ -60,7 +64,7 @@ const dashboardController = require('../controllers/dashboard.controller');
  */
 router.post(
     "/announcements",
-    [verifyToken, verifyIsAdmin],
+    [verifyToken, verifyIsAdmin, upload.single('image')],
     dashboardController.createAnnouncement
 );
 

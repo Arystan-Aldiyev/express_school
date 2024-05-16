@@ -2,13 +2,16 @@ const db = require("../models");
 const DashboardAnnouncement = db.dashboardAnnouncement;
 const DashboardCountdown = db.dashboardCountdown;
 
-// Create a new announcement
 exports.createAnnouncement = (req, res) => {
+    let image = null;
+    if (req.file) {
+        image = req.file.buffer; // Convert file to buffer for storage
+    }
     DashboardAnnouncement.create({
         author_id: req.userId,
         title: req.body.title,
         content: req.body.content,
-        image: req.body.image,
+        image: image, // Store the image buffer
         link: req.body.link,
         link_description: req.body.link_description,
         start_time: req.body.start_time,
@@ -20,6 +23,7 @@ exports.createAnnouncement = (req, res) => {
         res.status(500).send({ message: err.message });
     });
 };
+
 
 // Get all announcements
 exports.getAnnouncements = (req, res) => {
