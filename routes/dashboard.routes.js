@@ -119,6 +119,7 @@ router.get(
  *               image:
  *                 type: string
  *                 format: binary
+ *                 description: Upload an image
  *               link:
  *                 type: string
  *               link_description:
@@ -142,7 +143,7 @@ router.get(
  */
 router.put(
     "/announcements/:id",
-    [verifyToken, verifyIsAdmin],
+    [verifyToken, verifyIsAdmin, upload.single('image')],
     dashboardController.updateAnnouncement
 );
 

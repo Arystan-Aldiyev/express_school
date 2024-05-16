@@ -27,6 +27,7 @@ exports.createAnnouncement = (req, res) => {
 
 // Get all announcements
 exports.getAnnouncements = async (req, res) => {
+    
     try {
         const announcements = await DashboardAnnouncement.findAll();
         const announcementsWithBase64Images = announcements.map(announcement => {
@@ -48,10 +49,16 @@ exports.getAnnouncements = async (req, res) => {
 
 // Update an announcement
 exports.updateAnnouncement = (req, res) => {
+
+    let image = null;
+    if (req.file) {
+        image = req.file.buffer; // Convert file to buffer for storage
+    }
+
     DashboardAnnouncement.update({
         title: req.body.title,
         content: req.body.content,
-        image: req.body.image,
+        image: image,
         link: req.body.link,
         link_description: req.body.link_description,
         start_time: req.body.start_time,
