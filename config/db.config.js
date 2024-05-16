@@ -3,6 +3,7 @@ module.exports = {
     USER: "express_school_db_user",
     PASSWORD: "5TfZRQ3mKJ1ZXk0gcbAAzsSeHa30HDpi",
     DB: "express_school_db",
+    DIALECT: "postgres", // Add this line
     port: 5432,
     ssl: {
         require: true,
