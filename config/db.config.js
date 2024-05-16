@@ -11,7 +11,8 @@ module.exports = {
         idle: 10000
     },
     ssl: {
-        rejectUnauthorized: false
+        require: true,
+        rejectUnauthorized: false,
     }
 };
 
