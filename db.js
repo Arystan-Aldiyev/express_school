@@ -1,14 +1,13 @@
 const {Pool} = require('pg');
+const dbConfig = require('./config/db.config');
 const pool = new Pool({
 
-    user: 'express_school_db_user',
-    host: 'cp2ta4i1hbls7384hjf0-a.frankfurt-postgres.render.com',
-    password: '5TfZRQ3mKJ1ZXk0gcbAAzsSeHa30HDpi',
-    database: 'express_school_db',
+    user: dbConfig.USER,
+    host: dbConfig.HOST,
+    password: dbConfig.PASSWORD,
+    database: dbConfig.DB,
     port: 5432,
-    ssl: {
-        rejectUnauthorized: false,
-    }
+    ssl: true,
 });
 
 module.exports = {
