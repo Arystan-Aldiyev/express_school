@@ -6,7 +6,9 @@ const pool = new Pool({
     password: '5TfZRQ3mKJ1ZXk0gcbAAzsSeHa30HDpi',
     database: 'express_school_db',
     port: 5432,
-    ssl: true
+    ssl: {
+        rejectUnauthorized: false,
+    }
 });
 
 module.exports = {
