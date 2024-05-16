@@ -4,11 +4,9 @@ module.exports = {
     PASSWORD: "5TfZRQ3mKJ1ZXk0gcbAAzsSeHa30HDpi",
     DB: "express_school_db",
     port: 5432,
-    dialectOptions: {
-        ssl: {
-            require: true,
-            rejectUnauthorized: false // Use true if you have a CA certificate
-        }
+    ssl: {
+        require: true,
+        rejectUnauthorized: false // Use true if you have a CA certificate
     },
     pool: {
         max: 5,
