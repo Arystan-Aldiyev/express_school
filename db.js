@@ -7,7 +7,10 @@ const pool = new Pool({
     password: dbConfig.PASSWORD,
     database: dbConfig.DB,
     port: 5432,
-    ssl: dbConfig.ssl,
+    ssl: {
+        require: true,
+        rejectUnauthorized: false, // Change to true in production with a valid CA certificate
+    },
 });
 
 module.exports = {
