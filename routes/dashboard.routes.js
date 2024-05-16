@@ -43,6 +43,7 @@ const upload = multer({ storage: multer.memoryStorage() });
  *               image:
  *                 type: string
  *                 format: binary
+ *                 description: Upload an image
  *               link:
  *                 type: string
  *               link_description:
@@ -62,6 +63,7 @@ const upload = multer({ storage: multer.memoryStorage() });
  *       500:
  *         description: Some error happened
  */
+
 router.post(
     "/announcements",
     [verifyToken, verifyIsAdmin, upload.single('image')],
