@@ -26,13 +26,25 @@ exports.createAnnouncement = (req, res) => {
 
 
 // Get all announcements
-exports.getAnnouncements = (req, res) => {
-    DashboardAnnouncement.findAll().then(announcements => {
-        res.status(200).send(announcements);
-    }).catch(err => {
+exports.getAnnouncements = async (req, res) => {
+    try {
+        const announcements = await DashboardAnnouncement.findAll();
+        const announcementsWithBase64Images = announcements.map(announcement => {
+            let base64Image = null;
+            if (announcement.image) {
+                base64Image = Buffer.from(announcement.image).toString('base64');
+            }
+            return {
+                ...announcement.toJSON(),
+                image: base64Image ? `data:image/png;base64,${base64Image}` : null
+            };
+        });
+        res.status(200).send(announcementsWithBase64Images);
+    } catch (err) {
         res.status(500).send({ message: err.message });
-    });
+    }
 };
+
 
 // Update an announcement
 exports.updateAnnouncement = (req, res) => {
