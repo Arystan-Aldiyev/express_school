@@ -31,7 +31,39 @@ const verifyIsAdmin = (req, res, next) => {
     }
 };
 
+const verifyIsTeacher = (req, res, next) => {
+    if (req.userRole === 'teacher') {
+        next();
+    } else {
+        res.status(403).send({ message: "Require Teacher Role!" });
+    }
+};
+
+const verifyIsStudent = (req, res, next) => {
+    if (req.userRole === 'student') {
+        next();
+    } else {
+        res.status(403).send({ message: "Require Student Role!" });
+    }
+};
+
+const isAdminOrOwner = (req, res, next) => {
+    User.findByPk(req.userId).then(user => {
+        if (user.role === "admin" || user.user_id === parseInt(req.params.id)) {
+            next();
+            return;
+        }
+        res.status(403).send({
+            message: "Require Admin Role or Owner!"
+        });
+        return;
+    });
+};
+
 module.exports = {
     verifyToken,
-    verifyIsAdmin
+    verifyIsAdmin,
+    verifyIsTeacher,
+    verifyIsStudent,
+    isAdminOrOwner
 };
