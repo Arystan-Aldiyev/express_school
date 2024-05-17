@@ -1,11 +1,12 @@
 const db = require('../models');
 const User = db.User;
+const bcrypt = require('bcryptjs');
 
 exports.createUser = (req, res) => {
     User.create({
         name: req.body.name,
         email: req.body.email,
-        password: req.body.password,
+        password: bcrypt.hashSync(req.body.password, 8),
         role: req.body.role,
         phone_number: req.body.phone_number
     })
@@ -45,7 +46,7 @@ exports.updateUser = (req, res) => {
     User.update({
         name: req.body.name,
         email: req.body.email,
-        password: req.body.password,
+        password: bcrypt.hashSync(req.body.password, 8),
         role: req.body.role,
         phone_number: req.body.phone_number
     }, {

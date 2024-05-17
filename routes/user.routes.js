@@ -3,7 +3,6 @@ const router = express.Router();
 const userController = require('../controllers/user.controller');
 const { verifyIsAdmin, verifyToken, isAdminOrOwner } = require('../middleware/authJwt');
 
-// Swagger documentation setup
 /**
  * @swagger
  * components:
@@ -19,6 +18,7 @@ const { verifyIsAdmin, verifyToken, isAdminOrOwner } = require('../middleware/au
  *       properties:
  *         user_id:
  *           type: integer
+ *           readOnly: true
  *         name:
  *           type: string
  *         email:
@@ -55,7 +55,7 @@ const { verifyIsAdmin, verifyToken, isAdminOrOwner } = require('../middleware/au
 
 /**
  * @swagger
- * /api/users:
+ * /api/user:
  *   post:
  *     summary: Create a new user (Admin only)
  *     tags: [Users]
@@ -77,7 +77,7 @@ const { verifyIsAdmin, verifyToken, isAdminOrOwner } = require('../middleware/au
  *     security:
  *       - bearerAuth: []
  *   get:
- *     summary: Retrieve all users (Admin and Teacher only)
+ *     summary: Retrieve all users (Admin only)
  *     tags: [Users]
  *     responses:
  *       '200':
@@ -98,7 +98,7 @@ const { verifyIsAdmin, verifyToken, isAdminOrOwner } = require('../middleware/au
 
 /**
  * @swagger
- * /api/users/{id}:
+ * /api/user/{id}:
  *   get:
  *     summary: Retrieve a single user by ID
  *     tags: [Users]
@@ -176,10 +176,10 @@ const { verifyIsAdmin, verifyToken, isAdminOrOwner } = require('../middleware/au
 // Create a new user (accessible by admin)
 router.post('/', [verifyToken, verifyIsAdmin], userController.createUser);
 
-// Retrieve all users (accessible by admin and teacher)
+// Retrieve all users (accessible by admin)
 router.get('/', [verifyToken, verifyIsAdmin], userController.getAllUsers);
 
-// Retrieve a single user by ID (accessible by admin and teacher)
+// Retrieve a single user by ID (accessible by admin)
 router.get('/:id', [verifyToken], userController.getUserById);
 
 // Update a user by ID (accessible by admin or the user themselves)
