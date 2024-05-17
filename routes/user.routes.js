@@ -57,7 +57,7 @@ const { verifyIsAdmin, verifyToken, isAdminOrOwner } = require('../middleware/au
  * @swagger
  * /api/users:
  *   post:
- *     summary: Create a new user
+ *     summary: Create a new user (Admin only)
  *     tags: [Users]
  *     requestBody:
  *       required: true
@@ -77,7 +77,7 @@ const { verifyIsAdmin, verifyToken, isAdminOrOwner } = require('../middleware/au
  *     security:
  *       - bearerAuth: []
  *   get:
- *     summary: Retrieve all users
+ *     summary: Retrieve all users (Admin and Teacher only)
  *     tags: [Users]
  *     responses:
  *       '200':
@@ -124,7 +124,7 @@ const { verifyIsAdmin, verifyToken, isAdminOrOwner } = require('../middleware/au
  *     security:
  *       - bearerAuth: []
  *   put:
- *     summary: Update a user by ID
+ *     summary: Update a user by ID (Admin or the user themselves)
  *     tags: [Users]
  *     parameters:
  *       - name: id
@@ -152,7 +152,7 @@ const { verifyIsAdmin, verifyToken, isAdminOrOwner } = require('../middleware/au
  *     security:
  *       - bearerAuth: []
  *   delete:
- *     summary: Delete a user by ID
+ *     summary: Delete a user by ID (Admin only)
  *     tags: [Users]
  *     parameters:
  *       - name: id
