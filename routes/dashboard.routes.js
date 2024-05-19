@@ -1,3 +1,13 @@
+const express = require('express');
+const router = express.Router();
+
+const { verifyToken, verifyIsAdmin } = require('../middleware/authJwt');
+const dashboardController = require('../controllers/dashboard.controller');
+
+const multer = require('multer');
+const upload = multer({ storage: multer.memoryStorage() });
+
+
 /**
  * @swagger
  * components:
@@ -52,6 +62,17 @@
  *         description: Announcement created successfully
  *       500:
  *         description: Some error happened
+ */
+
+router.post(
+    "/announcements",
+    [verifyToken, verifyIsAdmin, upload.single('image')],
+    dashboardController.createAnnouncement
+);
+
+/**
+ * @swagger
+ * /api/dashboard/announcements:
  *   get:
  *     summary: Get all announcements
  *     tags: [Announcements]
@@ -62,6 +83,16 @@
  *         description: List of announcements
  *       500:
  *         description: Some error happened
+ */
+router.get(
+    "/announcements",
+    [verifyToken],
+    dashboardController.getAnnouncements
+);
+
+/**
+ * @swagger
+ * /api/dashboard/announcements/{id}:
  *   put:
  *     summary: Update an announcement
  *     tags: [Announcements]
@@ -109,6 +140,16 @@
  *         description: Announcement not found
  *       500:
  *         description: Some error happened
+ */
+router.put(
+    "/announcements/:id",
+    [verifyToken, verifyIsAdmin, upload.single('image')],
+    dashboardController.updateAnnouncement
+);
+
+/**
+ * @swagger
+ * /api/dashboard/announcements/{id}:
  *   delete:
  *     summary: Delete an announcement
  *     tags: [Announcements]
@@ -128,6 +169,17 @@
  *         description: Announcement not found
  *       500:
  *         description: Some error happened
+ */
+router.delete(
+    "/announcements/:id",
+    [verifyToken, verifyIsAdmin],
+    dashboardController.deleteAnnouncement
+);
+
+// Routes for countdowns
+
+/**
+ * @swagger
  * /api/dashboard/countdowns:
  *   post:
  *     summary: Create a new countdown
@@ -154,6 +206,16 @@
  *         description: Countdown created successfully
  *       500:
  *         description: Some error happened
+ */
+router.post(
+    "/countdowns",
+    [verifyToken, verifyIsAdmin],
+    dashboardController.createCountdown
+);
+
+/**
+ * @swagger
+ * /api/dashboard/countdowns:
  *   get:
  *     summary: Get all countdowns
  *     tags: [Countdowns]
@@ -164,6 +226,16 @@
  *         description: List of countdowns
  *       500:
  *         description: Some error happened
+ */
+router.get(
+    "/countdowns",
+    [verifyToken],
+    dashboardController.getCountdowns
+);
+
+/**
+ * @swagger
+ * /api/dashboard/countdowns/{id}:
  *   put:
  *     summary: Update a countdown
  *     tags: [Countdowns]
@@ -195,6 +267,16 @@
  *         description: Countdown not found
  *       500:
  *         description: Some error happened
+ */
+router.put(
+    "/countdowns/:id",
+    [verifyToken, verifyIsAdmin],
+    dashboardController.updateCountdown
+);
+
+/**
+ * @swagger
+ * /api/dashboard/countdowns/{id}:
  *   delete:
  *     summary: Delete a countdown
  *     tags: [Countdowns]
@@ -215,56 +297,6 @@
  *       500:
  *         description: Some error happened
  */
-const express = require('express');
-const router = express.Router();
-const multer = require('multer');
-const upload = multer({storage: multer.memoryStorage()});
-
-const { verifyToken, verifyIsAdmin } = require('../middleware/authJwt');
-const dashboardController = require('../controllers/dashboard.controller');
-
-router.post(
-    "/announcements", 
-    [verifyToken, verifyIsAdmin, upload.single('image')],
-    dashboardController.createAnnouncement
-);
-
-router.put(
-    "/announcements/:id",
-    [verifyToken, verifyIsAdmin, upload.single('image')],
-    dashboardController.updateAnnouncement
-);
-
-router.get(
-    "/announcements",
-    [verifyToken],
-    dashboardController.getAnnouncements
-);
-
-router.delete(
-    "/announcements/:id",
-    [verifyToken, verifyIsAdmin],
-    dashboardController.deleteAnnouncement
-);
-
-router.post(
-    "/countdowns",
-    [verifyToken, verifyIsAdmin],
-    dashboardController.createCountdown
-);
-
-router.get(
-    "/countdowns",
-    [verifyToken],
-    dashboardController.getCountdowns
-);
-
-router.put(
-    "/countdowns/:id",
-    [verifyToken, verifyIsAdmin],
-    dashboardController.updateCountdown
-);
-
 router.delete(
     "/countdowns/:id",
     [verifyToken, verifyIsAdmin],
@@ -272,4 +304,3 @@ router.delete(
 );
 
 module.exports = router;
-
