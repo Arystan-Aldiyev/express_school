@@ -54,6 +54,8 @@ const groupController = require('../controllers/group.controller');
  *     responses:
  *       201:
  *         description: Group created successfully
+ *       400:
+ *         description: Invalid teacher ID or invite code generation failed
  *       401:
  *         description: Unauthorized
  *       403:
@@ -110,6 +112,8 @@ const groupController = require('../controllers/group.controller');
  *     responses:
  *       200:
  *         description: Group updated successfully
+ *       400:
+ *         description: Invalid teacher ID or error updating group
  *       401:
  *         description: Unauthorized
  *       403:

@@ -1,7 +1,8 @@
 const express = require('express');
 const router = express.Router();
-const { verifyToken, verifyIsAdmin, verifyIsTeacher, verifyIsGroupMember } = require('../middleware/authJwt');
-const groupMembershipController = require('../controllers/groupMembership.controller');
+const { verifyToken, verifyIsAdmin, verifyIsTeacher, verifyIsGroupMember, verifyIsStudent } = require('../middleware/authJwt');
+const membershipController = require('../controllers/membership.controller');
+
 /**
  * @swagger
  * components:
@@ -40,6 +41,8 @@ const groupMembershipController = require('../controllers/groupMembership.contro
  *         description: Unauthorized
  *       403:
  *         description: Forbidden
+ *       404:
+ *         description: Group not found
  * 
  *   post:
  *     summary: Add a member to a group
@@ -69,6 +72,39 @@ const groupMembershipController = require('../controllers/groupMembership.contro
  *         description: Unauthorized
  *       403:
  *         description: Forbidden
+ *       404:
+ *         description: Group or user not found
+ *       500:
+ *         description: Internal Server Error
+ * 
+ * /api/groups/join:
+ *   post:
+ *     summary: Join a group by invite code
+ *     tags: [Memberships]
+ *     security:
+ *       - bearerAuth: []
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               invite_code:
+ *                 type: string
+ *               user_id:
+ *                 type: integer
+ *     responses:
+ *       201:
+ *         description: Member added to the group
+ *       400:
+ *         description: User already a member of the group
+ *       401:
+ *         description: Unauthorized
+ *       403:
+ *         description: Forbidden
+ *       404:
+ *         description: Invalid invite code or user not found
  *       500:
  *         description: Internal Server Error
  * 
@@ -99,7 +135,7 @@ const groupMembershipController = require('../controllers/groupMembership.contro
  *       403:
  *         description: Forbidden
  *       404:
- *         description: Membership not found
+ *         description: Group or membership not found
  *       500:
  *         description: Internal Server Error
  */
@@ -108,21 +144,28 @@ const groupMembershipController = require('../controllers/groupMembership.contro
 router.get(
   "/groups/:id/memberships",
   [verifyToken, verifyIsAdmin || verifyIsTeacher || verifyIsGroupMember],
-  groupMembershipController.getGroupMemberships
+  membershipController.getGroupMemberships
 );
 
 // Add a member to a group
 router.post(
   "/groups/:id/memberships",
   [verifyToken, verifyIsAdmin || verifyIsTeacher],
-  groupMembershipController.addGroupMember
+  membershipController.addGroupMember
+);
+
+// Add a member to a group by invite code
+router.post(
+  "/groups/join",
+  [verifyToken, verifyIsStudent || verifyIsTeacher],
+  membershipController.joinGroupByInviteCode
 );
 
 // Remove a member from a group
 router.delete(
   "/groups/:id/memberships/:membership_id",
   [verifyToken, verifyIsAdmin || verifyIsTeacher],
-  groupMembershipController.removeGroupMember
+  membershipController.removeGroupMember
 );
 
 module.exports = router;
