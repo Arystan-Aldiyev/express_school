@@ -4,7 +4,7 @@ const DashboardCountdown = db.dashboardCountdown;
 
 // Create a new announcement
 exports.createAnnouncement = (req, res) => {
-    let base64Image = req.body.image || null;  // Get base64 string directly from request body
+    let base64Image = req.file ? req.file.buffer.toString('base64') : null;  // Convert buffer to base64 string
 
     DashboardAnnouncement.create({
         author_id: req.userId,
