@@ -2,16 +2,15 @@ const db = require("../models");
 const DashboardAnnouncement = db.dashboardAnnouncement;
 const DashboardCountdown = db.dashboardCountdown;
 
+// Create a new announcement
 exports.createAnnouncement = (req, res) => {
-    let image = null;
-    if (req.file) {
-        image = req.file.buffer; // Convert file to buffer for storage
-    }
+    let base64Image = req.body.image || null;  // Get base64 string directly from request body
+
     DashboardAnnouncement.create({
         author_id: req.userId,
         title: req.body.title,
         content: req.body.content,
-        image: image, // Store the image buffer
+        image: base64Image,  // Store the base64 string
         link: req.body.link,
         link_description: req.body.link_description,
         start_time: req.body.start_time,
@@ -24,41 +23,24 @@ exports.createAnnouncement = (req, res) => {
     });
 };
 
-
 // Get all announcements
 exports.getAnnouncements = async (req, res) => {
-    
     try {
         const announcements = await DashboardAnnouncement.findAll();
-        const announcementsWithBase64Images = announcements.map(announcement => {
-            let base64Image = null;
-            if (announcement.image) {
-                base64Image = Buffer.from(announcement.image).toString('base64');
-            }
-            return {
-                ...announcement.toJSON(),
-                image: base64Image ? `data:image/png;base64,${base64Image}` : null
-            };
-        });
-        res.status(200).send(announcementsWithBase64Images);
+        res.status(200).send(announcements);
     } catch (err) {
         res.status(500).send({ message: err.message });
     }
 };
 
-
 // Update an announcement
 exports.updateAnnouncement = (req, res) => {
-
-    let image = null;
-    if (req.file) {
-        image = req.file.buffer; // Convert file to buffer for storage
-    }
+    let base64Image = req.body.image || null;  // Get base64 string directly from request body
 
     DashboardAnnouncement.update({
         title: req.body.title,
         content: req.body.content,
-        image: image,
+        image: base64Image,  // Store the base64 string
         link: req.body.link,
         link_description: req.body.link_description,
         start_time: req.body.start_time,
