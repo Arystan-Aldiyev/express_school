@@ -4,8 +4,7 @@ const router = express.Router();
 const { verifyToken, verifyIsAdmin } = require('../middleware/authJwt');
 const dashboardController = require('../controllers/dashboard.controller');
 
-const multer = require('multer');
-const upload = multer({ storage: multer.memoryStorage() });
+
 
 
 /**
@@ -66,8 +65,9 @@ const upload = multer({ storage: multer.memoryStorage() });
 
 router.post(
     "/announcements",
-    [verifyToken, verifyIsAdmin, upload.single('image')],
-    dashboardController.createAnnouncement
+    [verifyToken, verifyIsAdmin],
+    dashboardController.uploadImage,
+    dashboardController.createAnnouncement,
 );
 
 /**
@@ -144,6 +144,7 @@ router.get(
 router.put(
     "/announcements/:id",
     [verifyToken, verifyIsAdmin, upload.single('image')],
+    dashboardController.uploadImage,
     dashboardController.updateAnnouncement
 );
 
