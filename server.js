@@ -8,6 +8,9 @@ const userRoutes = require('./routes/user.routes');
 const swaggerUi = require('swagger-ui-express');
 const swaggerSpec = require('./config/swaggerConfig');
 
+const groupRoutes = require('./routes/group.routes');
+const groupMembershipRoutes = require('./routes/groupMembership.routes');
+
 
 const {verifyToken} = require('./middleware/authJwt');
 
@@ -32,6 +35,8 @@ app.use(bodyParser.json());
 app.use('/api/auth', authRoutes);
 app.use('/api/dashboard', dashboardRoutes);
 app.use('/api/user', userRoutes);
+app.use('/api', groupRoutes);
+app.use('/api', groupMembershipRoutes);
 
 app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerSpec));
 
