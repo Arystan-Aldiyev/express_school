@@ -2,19 +2,18 @@ const db = require("../models");
 const DashboardAnnouncement = db.dashboardAnnouncement;
 const DashboardCountdown = db.dashboardCountdown;
 
+// Create a new announcement
 exports.createAnnouncement = (req, res) => {
     let image = null;
     if (req.file) {
-        image = req.file.buffer.toString('base64'); 
+        image = req.file.buffer.toString('base64');
     }
-    
-
 
     DashboardAnnouncement.create({
         author_id: req.userId,
         title: req.body.title,
         content: req.body.content,
-        image: image, // Store the image buffer
+        image: image, // Store the base64 string
         link: req.body.link,
         link_description: req.body.link_description,
         start_time: req.body.start_time,
@@ -27,20 +26,18 @@ exports.createAnnouncement = (req, res) => {
     });
 };
 
-
 // Get all announcements
 exports.getAnnouncements = async (req, res) => {
-    
     try {
         const announcements = await DashboardAnnouncement.findAll();
         const announcementsWithBase64Images = announcements.map(announcement => {
             let base64Image = null;
             if (announcement.image) {
-                base64Image = Buffer.from(announcement.image).toString('base64');
+                base64Image = `data:image/png;base64,${announcement.image}`;
             }
             return {
                 ...announcement.toJSON(),
-                image: base64Image ? `data:image/png;base64,${base64Image}` : null
+                image: base64Image
             };
         });
         res.status(200).send(announcementsWithBase64Images);
@@ -49,13 +46,11 @@ exports.getAnnouncements = async (req, res) => {
     }
 };
 
-
 // Update an announcement
 exports.updateAnnouncement = (req, res) => {
-
     let image = null;
     if (req.file) {
-        image = req.file.buffer.toString('base64'); // Convert file to buffer for storage
+        image = req.file.buffer.toString('base64');
     }
 
     DashboardAnnouncement.update({
