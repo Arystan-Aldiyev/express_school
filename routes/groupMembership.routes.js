@@ -1,7 +1,7 @@
 const express = require('express');
 const router = express.Router();
 const { verifyToken, verifyIsAdmin, verifyIsTeacher, verifyIsGroupMember, verifyIsStudent } = require('../middleware/authJwt');
-const membershipController = require('../controllers/membership.controller');
+const membershipController = require('../controllers/groupMembership.controller');
 
 /**
  * @swagger
