@@ -217,12 +217,14 @@
  */
 const express = require('express');
 const router = express.Router();
+const multer = require('multer');
+const upload = multer({storage: multer.memoryStorage()});
 
 const { verifyToken, verifyIsAdmin } = require('../middleware/authJwt');
 const dashboardController = require('../controllers/dashboard.controller');
 
 router.post(
-    "/announcements",
+    "/announcements", 
     [verifyToken, verifyIsAdmin, upload.single('image')],
     dashboardController.createAnnouncement
 );
