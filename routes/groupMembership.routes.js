@@ -157,7 +157,7 @@ router.post(
 // Add a member to a group by invite code
 router.post(
   "/groups/join",
-  [verifyToken, verifyIsStudent || verifyIsTeacher],
+  [verifyToken, verifyIsAdmin || verifyIsStudent || verifyIsTeacher],
   membershipController.joinGroupByInviteCode
 );
 
