@@ -40,7 +40,8 @@ exports.addGroupMember = (req, res) => {
 
                     Membership.create({
                         group_id: req.params.id,
-                        user_id: req.body.user_id
+                        user_id: req.body.user_id,
+                        role: user.role
                     })
                         .then(membership => {
                             res.status(201).send(membership);
@@ -80,7 +81,8 @@ exports.joinGroupByInviteCode = (req, res) => {
 
                             Membership.create({
                                 group_id: group.group_id,
-                                user_id: req.body.user_id
+                                user_id: req.body.user_id,
+                                role: user.role
                             })
                                 .then(membership => {
                                     res.status(201).send(membership);
