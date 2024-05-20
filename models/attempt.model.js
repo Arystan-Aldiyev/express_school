@@ -12,7 +12,7 @@ module.exports = (sequelize, DataTypes) => {
           key: 'test_id'
         }
       },
-      student_id: {
+      user_id: {
         type: DataTypes.INTEGER,
         references: {
           model: 'users',
