@@ -1,5 +1,5 @@
 const db = require("../models");
-const Membership = db.membership;
+const Membership = db.groupMembership;
 const Group = db.group;
 const User = db.user;
 
