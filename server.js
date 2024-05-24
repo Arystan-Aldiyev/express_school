@@ -39,6 +39,8 @@ if (!fs.existsSync(uploadsDir)) {
     fs.mkdirSync(uploadsDir, { recursive: true });
 }
 
+app.use('/uploads', express.static(uploadsDir));
+
 const PORT = process.env.PORT || 3000;
 
 sequelize.sync()
