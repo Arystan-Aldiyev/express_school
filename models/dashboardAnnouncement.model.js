@@ -14,7 +14,7 @@ module.exports = (sequelize, Sequelize) => {
             allowNull: false
         },
         image: {
-            type: Sequelize.BLOB("long")
+            type: Sequelize.STRING
         },
         link: {
             type: Sequelize.STRING

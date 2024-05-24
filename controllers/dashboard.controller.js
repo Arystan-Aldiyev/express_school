@@ -1,19 +1,26 @@
+const fs = require('fs');
+const path = require('path');
 const db = require("../models");
 const DashboardAnnouncement = db.dashboardAnnouncement;
 const DashboardCountdown = db.dashboardCountdown;
 
+const uploadsDir = path.join('/var/data', 'uploads');
+
 // Create a new announcement
 exports.createAnnouncement = (req, res) => {
-    let image = null;
+    let imagePath = null;
     if (req.file) {
-        image = req.file.buffer.toString('base64');
+        const filename = `${Date.now()}-${req.file.originalname}`;
+        const filepath = path.join(uploadsDir, filename);
+        fs.writeFileSync(filepath, req.file.buffer);
+        imagePath = `/uploads/${filename}`;
     }
 
     DashboardAnnouncement.create({
         author_id: req.userId,
         title: req.body.title,
         content: req.body.content,
-        image: image, // Store the base64 string
+        image: imagePath, // Store the file path as URL
         link: req.body.link,
         link_description: req.body.link_description,
         start_time: req.body.start_time,
@@ -30,17 +37,7 @@ exports.createAnnouncement = (req, res) => {
 exports.getAnnouncements = async (req, res) => {
     try {
         const announcements = await DashboardAnnouncement.findAll();
-        const announcementsWithBase64Images = announcements.map(announcement => {
-            let base64Image = null;
-            if (announcement.image) {
-                base64Image = `data:image/png;base64,${announcement.image}`;
-            }
-            return {
-                ...announcement.toJSON(),
-                image: base64Image
-            };
-        });
-        res.status(200).send(announcementsWithBase64Images);
+        res.status(200).send(announcements);
     } catch (err) {
         res.status(500).send({ message: err.message });
     }
@@ -48,15 +45,18 @@ exports.getAnnouncements = async (req, res) => {
 
 // Update an announcement
 exports.updateAnnouncement = (req, res) => {
-    let image = null;
+    let imagePath = null;
     if (req.file) {
-        image = req.file.buffer.toString('base64');
+        const filename = `${Date.now()}-${req.file.originalname}`;
+        const filepath = path.join(uploadsDir, filename);
+        fs.writeFileSync(filepath, req.file.buffer);
+        imagePath = `/uploads/${filename}`;
     }
 
     DashboardAnnouncement.update({
         title: req.body.title,
         content: req.body.content,
-        image: image,
+        image: imagePath,
         link: req.body.link,
         link_description: req.body.link_description,
         start_time: req.body.start_time,
@@ -77,8 +77,19 @@ exports.updateAnnouncement = (req, res) => {
 
 // Delete an announcement
 exports.deleteAnnouncement = (req, res) => {
-    DashboardAnnouncement.destroy({
+    DashboardAnnouncement.findOne({
         where: { announcement_id: req.params.id }
+    }).then(announcement => {
+        if (announcement) {
+            if (announcement.image) {
+                fs.unlinkSync(path.join(uploadsDir, path.basename(announcement.image))); // Remove the file from the file system
+            }
+            return DashboardAnnouncement.destroy({
+                where: { announcement_id: req.params.id }
+            });
+        } else {
+            throw new Error(`Announcement with id=${req.params.id} not found!`);
+        }
     }).then(num => {
         if (num == 1) {
             res.status(200).send({ message: "Announcement was deleted successfully!" });
