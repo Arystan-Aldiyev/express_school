@@ -6,7 +6,6 @@ const DashboardCountdown = db.dashboardCountdown;
 
 const uploadsDir = path.join('/var/data', 'uploads');
 
-// Create a new announcement
 exports.createAnnouncement = (req, res) => {
     let imagePath = null;
     if (req.file) {

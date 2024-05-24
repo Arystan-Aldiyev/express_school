@@ -1,12 +1,11 @@
 const express = require('express');
 const router = express.Router();
-
+const multer = require('multer');
 const { verifyToken, verifyIsAdmin } = require('../middleware/authJwt');
 const dashboardController = require('../controllers/dashboard.controller');
 
-const multer = require('multer');
+// Configure multer for memory storage
 const upload = multer({ storage: multer.memoryStorage() });
-
 
 /**
  * @swagger
@@ -63,7 +62,6 @@ const upload = multer({ storage: multer.memoryStorage() });
  *       500:
  *         description: Some error happened
  */
-
 router.post(
     "/announcements",
     [verifyToken, verifyIsAdmin, upload.single('image')],
@@ -108,7 +106,7 @@ router.get(
  *     requestBody:
  *       required: true
  *       content:
- *         application/json:
+ *         multipart/form-data:
  *           schema:
  *             type: object
  *             properties:
