@@ -1,5 +1,6 @@
 const express = require('express'); 
 const cors = require('cors');
+require('dotenv').config();
 const { sequelize } = require('./models');
 const bodyParser = require('body-parser');
 const authRoutes = require('./routes/auth.routes');
@@ -40,9 +41,11 @@ app.use('/api', groupMembershipRoutes);
 
 app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerSpec));
 
+const PORT = process.env.PORT || 3000;
+
 sequelize.sync()
   .then(() => {
-    app.listen(10000, () => {
+    app.listen(PORT, () => {
       console.log('Server is running on port 3000');
     });
   })
