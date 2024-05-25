@@ -1,6 +1,5 @@
-const config = require('../config/db.config.js');
-
 const Sequelize = require('sequelize');
+const config = require('../config/db.config.js');
 const sequelize = new Sequelize(
     config.DB, 
     config.USER, 
@@ -25,6 +24,7 @@ const db = {};
 db.Sequelize = Sequelize;
 db.sequelize = sequelize;
 
+// Import models
 db.user = require('./user.model.js')(sequelize, Sequelize);
 db.group = require('./group.model.js')(sequelize, Sequelize); 
 db.groupMembership = require('./groupMembership.model.js')(sequelize, Sequelize);
@@ -39,7 +39,7 @@ db.message = require('./message.model.js')(sequelize, Sequelize);
 db.dashboardAnnouncement = require('./dashboardAnnouncement.model.js')(sequelize, Sequelize);
 db.dashboardCountdown = require('./dashboardCountdown.model.js')(sequelize, Sequelize);
 
-
+// Define associations
 db.group.belongsTo(db.user, { foreignKey: 'teacher_id', as: 'teacher' });
 db.user.hasMany(db.group, { foreignKey: 'teacher_id', as: 'groups' });
 
@@ -82,5 +82,12 @@ db.user.hasMany(db.message, { as: 'receivedMessages', foreignKey: 'user_id' });
 
 db.dashboardAnnouncement.belongsTo(db.user, { foreignKey: 'author_id' });
 db.user.hasMany(db.dashboardAnnouncement, { foreignKey: 'author_id' });
+
+// Call associate methods
+Object.keys(db).forEach(modelName => {
+  if (db[modelName].associate) {
+    db[modelName].associate(db);
+  }
+});
 
 module.exports = db;
