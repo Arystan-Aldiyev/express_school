@@ -51,11 +51,11 @@ db.user.hasMany(db.groupMembership, { foreignKey: 'user_id' });
 db.test.belongsTo(db.group, { foreignKey: 'group_id' });
 db.group.hasMany(db.test, { foreignKey: 'group_id' });
 
-db.question.belongsTo(db.test, { foreignKey: 'test_id' });
-db.test.hasMany(db.question, { foreignKey: 'test_id' });
+db.question.belongsTo(db.test, { foreignKey: 'test_id', as: 'test'});
+db.test.hasMany(db.question, { foreignKey: 'test_id', as: 'questions'});
 
-db.answerOption.belongsTo(db.question, { foreignKey: 'question_id' });
-db.question.hasMany(db.answerOption, { foreignKey: 'question_id' });
+db.answerOption.belongsTo(db.question, { foreignKey: 'question_id', as: 'questions'});
+db.question.hasMany(db.answerOption, { foreignKey: 'question_id', as: 'answerOptions'});
 
 db.attempt.belongsTo(db.test, { foreignKey: 'test_id' });
 db.test.hasMany(db.attempt, { foreignKey: 'test_id' });
