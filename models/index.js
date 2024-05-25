@@ -39,9 +39,6 @@ db.message = require('./message.model.js')(sequelize, Sequelize);
 db.dashboardAnnouncement = require('./dashboardAnnouncement.model.js')(sequelize, Sequelize);
 db.dashboardCountdown = require('./dashboardCountdown.model.js')(sequelize, Sequelize);
 
-db.Test.associate(db);
-db.Question.associate(db);
-db.AnswerOption.associate(db);
 
 db.group.belongsTo(db.user, { foreignKey: 'teacher_id', as: 'teacher' });
 db.user.hasMany(db.group, { foreignKey: 'teacher_id', as: 'groups' });
