@@ -12,6 +12,7 @@ const groupRoutes = require('./routes/group.routes');
 const testRoutes = require('./routes/test.routes');
 const groupMembershipRoutes = require('./routes/groupMembership.routes');
 const questionRoutes = require('./routes/question.routes');
+const answerOptionRoutes = require('./routes/answerOption.routes');
 
 
 const { verifyToken } = require('./middleware/authJwt');
@@ -37,6 +38,7 @@ app.use('/api', groupRoutes);
 app.use('/api', groupMembershipRoutes);
 app.use('/api', testRoutes);
 app.use('/api', questionRoutes);
+app.use('/api', answerOptionRoutes);
 
 app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerSpec));
 

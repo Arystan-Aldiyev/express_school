@@ -1,0 +1,209 @@
+const express = require('express');
+const router = express.Router();
+const { verifyToken, verifyIsAdmin, verifyIsTeacher } = require('../middleware/authJwt');
+const answerOptionController = require('../controllers/answerOption.controller');
+
+/**
+ * @swagger
+ * components:
+ *   securitySchemes:
+ *     bearerAuth:
+ *       type: http
+ *       scheme: bearer
+ *       bearerFormat: JWT
+ *   schemas:
+ *     AnswerOption:
+ *       type: object
+ *       required:
+ *         - question_id
+ *         - option_text
+ *       properties:
+ *         option_id:
+ *           type: integer
+ *         question_id:
+ *           type: integer
+ *         option_text:
+ *           type: string
+ *         is_correct:
+ *           type: boolean
+ *       example:
+ *         question_id: 1
+ *         option_text: "Option A"
+ *         is_correct: true
+ *     AnswerOptions:
+ *       type: array
+ *       items:
+ *         $ref: '#/components/schemas/AnswerOption'
+ * security:
+ *   - bearerAuth: []
+ * 
+ * tags:
+ *   name: AnswerOptions
+ *   description: API for managing answer options
+ */
+
+/**
+ * @swagger
+ * /api/answerOptions:
+ *   post:
+ *     summary: Create new answer options
+ *     tags: [AnswerOptions]
+ *     security:
+ *       - bearerAuth: []
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               answerOptions:
+ *                 $ref: '#/components/schemas/AnswerOptions'
+ *               question_id:
+ *                 type: integer
+ *               option_text:
+ *                 type: string
+ *               is_correct:
+ *                 type: boolean
+ *     responses:
+ *       201:
+ *         description: Answer options created
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/AnswerOptions'
+ */
+router.post('/answerOptions', [verifyToken, verifyIsAdmin || verifyIsTeacher], answerOptionController.createAnswerOptions);
+
+/**
+ * @swagger
+ * /api/questions/{question_id}/answerOptions:
+ *   get:
+ *     summary: Retrieve all answer options for a question
+ *     tags: [AnswerOptions]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: question_id
+ *         schema:
+ *           type: integer
+ *         required: true
+ *         description: The question ID
+ *     responses:
+ *       200:
+ *         description: A list of answer options
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: array
+ *               items:
+ *                 $ref: '#/components/schemas/AnswerOption'
+ */
+router.get('/questions/:question_id/answerOptions', [verifyToken, verifyIsAdmin || verifyIsTeacher], answerOptionController.findAllAnswerOptions);
+
+/**
+ * @swagger
+ * /api/answerOptions/{id}:
+ *   get:
+ *     summary: Retrieve a single answer option by ID
+ *     tags: [AnswerOptions]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         schema:
+ *           type: integer
+ *         required: true
+ *         description: The answer option ID
+ *     responses:
+ *       200:
+ *         description: A single answer option
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/AnswerOption'
+ *       404:
+ *         description: Answer option not found
+ */
+router.get('/answerOptions/:id', [verifyToken, verifyIsAdmin || verifyIsTeacher], answerOptionController.findOneAnswerOption);
+
+/**
+ * @swagger
+ * /api/answerOptions/{id}:
+ *   put:
+ *     summary: Update an answer option by ID
+ *     tags: [AnswerOptions]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         schema:
+ *           type: integer
+ *         required: true
+ *         description: The answer option ID
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             $ref: '#/components/schemas/AnswerOption'
+ *     responses:
+ *       200:
+ *         description: Answer option updated successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/AnswerOption'
+ *       404:
+ *         description: Answer option not found
+ */
+router.put('/answerOptions/:id', [verifyToken, verifyIsAdmin || verifyIsTeacher], answerOptionController.updateAnswerOption);
+
+/**
+ * @swagger
+ * /api/answerOptions/{id}:
+ *   delete:
+ *     summary: Delete an answer option by ID
+ *     tags: [AnswerOptions]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         schema:
+ *           type: integer
+ *         required: true
+ *         description: The answer option ID
+ *     responses:
+ *       200:
+ *         description: Answer option deleted successfully
+ *       404:
+ *         description: Answer option not found
+ */
+router.delete('/answerOptions/:id', [verifyToken, verifyIsAdmin || verifyIsTeacher], answerOptionController.deleteAnswerOption);
+
+/**
+ * @swagger
+ * /api/questions/{question_id}/answerOptions:
+ *   delete:
+ *     summary: Delete all answer options for a question
+ *     tags: [AnswerOptions]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: question_id
+ *         schema:
+ *           type: integer
+ *         required: true
+ *         description: The question ID
+ *     responses:
+ *       200:
+ *         description: All answer options deleted successfully
+ */
+router.delete('/questions/:question_id/answerOptions', [verifyToken, verifyIsAdmin || verifyIsTeacher], answerOptionController.deleteAllAnswerOptions);
+
+module.exports = router;
