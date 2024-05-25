@@ -2,28 +2,43 @@ const db = require("../models");
 const AnswerOption = db.answerOption;
 
 // Create and Save one or more AnswerOptions
-exports.createAnswerOptions = (req, res) => {
-    if (!req.body.answerOptions && !req.body.option_text) {
+exports.createAnswerOption = (req, res) => {
+    if (!req.body.option_text || !req.body.question_id) {
         return res.status(400).send({
-            message: "AnswerOptions should be an array or option_text should be provided!"
+            message: "Option text and question ID can not be empty!"
         });
     }
 
-    let answerOptions = [];
+    const answerOption = {
+        question_id: req.body.question_id,
+        option_text: req.body.option_text,
+        is_correct: req.body.is_correct || false
+    };
 
-    if (Array.isArray(req.body.answerOptions)) {
-        answerOptions = req.body.answerOptions.map(option => ({
-            question_id: option.question_id,
-            option_text: option.option_text,
-            is_correct: option.is_correct || false
-        }));
-    } else {
-        answerOptions.push({
-            question_id: req.body.question_id,
-            option_text: req.body.option_text,
-            is_correct: req.body.is_correct || false
+    AnswerOption.create(answerOption)
+        .then(data => {
+            res.status(201).send(data);
+        })
+        .catch(err => {
+            res.status(500).send({
+                message: err.message || "Some error occurred while creating the AnswerOption."
+            });
+        });
+};
+
+// Create and Save multiple AnswerOptions
+exports.createAnswerOptionsBulk = (req, res) => {
+    if (!req.body.answerOptions || !Array.isArray(req.body.answerOptions)) {
+        return res.status(400).send({
+            message: "AnswerOptions should be an array!"
         });
     }
+
+    const answerOptions = req.body.answerOptions.map(option => ({
+        question_id: option.question_id,
+        option_text: option.option_text,
+        is_correct: option.is_correct || false
+    }));
 
     AnswerOption.bulkCreate(answerOptions)
         .then(data => {

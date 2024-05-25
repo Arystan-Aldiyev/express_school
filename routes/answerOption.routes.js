@@ -46,7 +46,31 @@ const answerOptionController = require('../controllers/answerOption.controller')
  * @swagger
  * /api/answerOptions:
  *   post:
- *     summary: Create new answer options
+ *     summary: Create a new answer option
+ *     tags: [AnswerOptions]
+ *     security:
+ *       - bearerAuth: []
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             $ref: '#/components/schemas/AnswerOption'
+ *     responses:
+ *       201:
+ *         description: Answer option created
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/AnswerOption'
+ */
+router.post('/answerOptions', [verifyToken, verifyIsAdmin || verifyIsTeacher], answerOptionController.createAnswerOption);
+
+/**
+ * @swagger
+ * /api/answerOptions/bulk:
+ *   post:
+ *     summary: Create multiple new answer options
  *     tags: [AnswerOptions]
  *     security:
  *       - bearerAuth: []
@@ -59,12 +83,6 @@ const answerOptionController = require('../controllers/answerOption.controller')
  *             properties:
  *               answerOptions:
  *                 $ref: '#/components/schemas/AnswerOptions'
- *               question_id:
- *                 type: integer
- *               option_text:
- *                 type: string
- *               is_correct:
- *                 type: boolean
  *     responses:
  *       201:
  *         description: Answer options created
@@ -73,7 +91,7 @@ const answerOptionController = require('../controllers/answerOption.controller')
  *             schema:
  *               $ref: '#/components/schemas/AnswerOptions'
  */
-router.post('/answerOptions', [verifyToken, verifyIsAdmin || verifyIsTeacher], answerOptionController.createAnswerOptions);
+router.post('/answerOptions/bulk', [verifyToken, verifyIsAdmin || verifyIsTeacher], answerOptionController.createAnswerOptionsBulk);
 
 /**
  * @swagger
