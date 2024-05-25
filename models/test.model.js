@@ -1,5 +1,5 @@
 module.exports = (sequelize, DataTypes) => {
-    return sequelize.define('Test', {
+    const Test = sequelize.define('Test', {
       test_id: {
         type: DataTypes.INTEGER,
         primaryKey: true,
@@ -29,4 +29,14 @@ module.exports = (sequelize, DataTypes) => {
       tableName: 'tests',
       timestamps: false
     });
+  
+    Test.associate = models => {
+      Test.hasMany(models.Question, {
+        foreignKey: 'test_id',
+        as: 'questions'
+      });
+    };
+  
+    return Test;
   };
+  
