@@ -16,11 +16,9 @@ module.exports = (sequelize, DataTypes) => {
         type: DataTypes.TEXT,
         allowNull: false
       },
-      correct_answer: {
-        type: DataTypes.STRING
-      },
       hint: {
-        type: DataTypes.TEXT
+        type: DataTypes.TEXT,
+        allowNull: true
       }
     }, {
       tableName: 'questions',

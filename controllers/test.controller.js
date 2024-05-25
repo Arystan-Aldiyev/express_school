@@ -1,9 +1,6 @@
 const db = require("../models");
-const User = db.user;
 const Group = db.group;
 const Test = db.test;
-const Question = db.question;
-const AnswerOption = db.answerOption;
 
 
 
