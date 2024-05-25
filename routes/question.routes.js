@@ -131,7 +131,7 @@ router.post('/questions', [verifyToken, verifyIsAdmin || verifyIsTeacher], uploa
  * @swagger
  * /api/questions/{id}:
  *   put:
- *     summary: Update a question by ID
+ *     summary: Full update a question by ID
  *     tags: [Questions]
  *     security:
  *       - bearerAuth: []
@@ -158,8 +158,6 @@ router.post('/questions', [verifyToken, verifyIsAdmin || verifyIsTeacher], uploa
  *               image:
  *                 type: string
  *                 format: binary
- *               remove_image:
- *                 type: boolean
  *     responses:
  *       200:
  *         description: Question updated successfully
@@ -203,8 +201,6 @@ router.put('/questions/:id', [verifyToken, verifyIsAdmin || verifyIsTeacher], up
  *               image:
  *                 type: string
  *                 format: binary
- *               remove_image:
- *                 type: boolean
  *     responses:
  *       200:
  *         description: Question updated successfully

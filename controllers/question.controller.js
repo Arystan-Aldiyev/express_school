@@ -57,7 +57,7 @@ exports.findOneQuestion = (req, res) => {
         });
 };
 
-// Update a question by ID
+// Full update a question by ID (PUT)
 exports.updateQuestion = (req, res) => {
     const id = req.params.id;
 
@@ -69,9 +69,8 @@ exports.updateQuestion = (req, res) => {
                 });
             }
 
-            let imagePath = question.image;
+            let imagePath = null;
             if (req.file) {
-                // Remove old image if a new one is uploaded
                 if (question.image) {
                     fs.unlinkSync(path.join(questionUploadsDir, path.basename(question.image)));
                 }
@@ -79,19 +78,13 @@ exports.updateQuestion = (req, res) => {
                 const filepath = path.join(questionUploadsDir, filename);
                 fs.writeFileSync(filepath, req.file.buffer);
                 imagePath = `/uploads/questions/${filename}`;
-            } else if (req.body.remove_image) {
-                // Remove the image if no new image is uploaded and the remove_image flag is set
-                if (question.image) {
-                    fs.unlinkSync(path.join(questionUploadsDir, path.basename(question.image)));
-                }
-                imagePath = null;
             }
 
             return Question.update({
                 test_id: req.body.test_id,
                 question_text: req.body.question_text,
                 hint: req.body.hint,
-                image: imagePath
+                image: imagePath // Will be null if no new image is uploaded
             }, {
                 where: { question_id: id }
             });
@@ -108,7 +101,7 @@ exports.updateQuestion = (req, res) => {
         });
 };
 
-// Partially update a question by ID
+// Partial update a question by ID (PATCH)
 exports.patchQuestion = (req, res) => {
     const id = req.params.id;
 
@@ -123,7 +116,6 @@ exports.patchQuestion = (req, res) => {
             let updateData = req.body;
 
             if (req.file) {
-                // Remove old image if a new one is uploaded
                 if (question.image) {
                     fs.unlinkSync(path.join(questionUploadsDir, path.basename(question.image)));
                 }
@@ -131,12 +123,6 @@ exports.patchQuestion = (req, res) => {
                 const filepath = path.join(questionUploadsDir, filename);
                 fs.writeFileSync(filepath, req.file.buffer);
                 updateData.image = `/uploads/questions/${filename}`;
-            } else if (req.body.remove_image) {
-                // Remove the image if no new image is uploaded and the remove_image flag is set
-                if (question.image) {
-                    fs.unlinkSync(path.join(questionUploadsDir, path.basename(question.image)));
-                }
-                updateData.image = null;
             }
 
             return Question.update(updateData, {
