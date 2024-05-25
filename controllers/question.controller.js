@@ -71,10 +71,20 @@ exports.updateQuestion = (req, res) => {
 
             let imagePath = question.image;
             if (req.file) {
+                // Remove old image if a new one is uploaded
+                if (question.image) {
+                    fs.unlinkSync(path.join(questionUploadsDir, path.basename(question.image)));
+                }
                 const filename = `${Date.now()}-${req.file.originalname}`;
                 const filepath = path.join(questionUploadsDir, filename);
                 fs.writeFileSync(filepath, req.file.buffer);
                 imagePath = `/uploads/questions/${filename}`;
+            } else if (req.body.remove_image) {
+                // Remove the image if no new image is uploaded and the remove_image flag is set
+                if (question.image) {
+                    fs.unlinkSync(path.join(questionUploadsDir, path.basename(question.image)));
+                }
+                imagePath = null;
             }
 
             return Question.update({
@@ -83,6 +93,53 @@ exports.updateQuestion = (req, res) => {
                 hint: req.body.hint,
                 image: imagePath
             }, {
+                where: { question_id: id }
+            });
+        })
+        .then(num => {
+            if (num == 1) {
+                res.send({ message: "Question was updated successfully." });
+            } else {
+                res.send({ message: `Cannot update Question with id=${id}. Maybe Question was not found or req.body is empty!` });
+            }
+        })
+        .catch(err => {
+            res.status(500).send({ message: err.message });
+        });
+};
+
+// Partially update a question by ID
+exports.patchQuestion = (req, res) => {
+    const id = req.params.id;
+
+    Question.findByPk(id)
+        .then(question => {
+            if (!question) {
+                return res.status(404).send({
+                    message: `Cannot update Question with id=${id}. Maybe Question was not found!`
+                });
+            }
+
+            let updateData = req.body;
+
+            if (req.file) {
+                // Remove old image if a new one is uploaded
+                if (question.image) {
+                    fs.unlinkSync(path.join(questionUploadsDir, path.basename(question.image)));
+                }
+                const filename = `${Date.now()}-${req.file.originalname}`;
+                const filepath = path.join(questionUploadsDir, filename);
+                fs.writeFileSync(filepath, req.file.buffer);
+                updateData.image = `/uploads/questions/${filename}`;
+            } else if (req.body.remove_image) {
+                // Remove the image if no new image is uploaded and the remove_image flag is set
+                if (question.image) {
+                    fs.unlinkSync(path.join(questionUploadsDir, path.basename(question.image)));
+                }
+                updateData.image = null;
+            }
+
+            return Question.update(updateData, {
                 where: { question_id: id }
             });
         })

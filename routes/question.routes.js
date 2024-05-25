@@ -158,6 +158,8 @@ router.post('/questions', [verifyToken, verifyIsAdmin || verifyIsTeacher], uploa
  *               image:
  *                 type: string
  *                 format: binary
+ *               remove_image:
+ *                 type: boolean
  *     responses:
  *       200:
  *         description: Question updated successfully
@@ -169,6 +171,51 @@ router.post('/questions', [verifyToken, verifyIsAdmin || verifyIsTeacher], uploa
  *         description: Question not found
  */
 router.put('/questions/:id', [verifyToken, verifyIsAdmin || verifyIsTeacher], upload.single('image'), questionController.updateQuestion);
+
+/**
+ * @swagger
+ * /api/questions/{id}:
+ *   patch:
+ *     summary: Partially update a question by ID
+ *     tags: [Questions]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         schema:
+ *           type: integer
+ *         required: true
+ *         description: The question ID
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         multipart/form-data:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               test_id:
+ *                 type: integer
+ *               question_text:
+ *                 type: string
+ *               hint:
+ *                 type: string
+ *               image:
+ *                 type: string
+ *                 format: binary
+ *               remove_image:
+ *                 type: boolean
+ *     responses:
+ *       200:
+ *         description: Question updated successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/Question'
+ *       404:
+ *         description: Question not found
+ */
+router.patch('/questions/:id', [verifyToken, verifyIsAdmin || verifyIsTeacher], upload.single('image'), questionController.patchQuestion);
 
 /**
  * @swagger
