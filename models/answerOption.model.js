@@ -25,7 +25,7 @@ module.exports = (sequelize, DataTypes) => {
       timestamps: false
     });
   
-    AnswerOption.associate = models => {
+    AnswerOption.associate = function(models) {
       AnswerOption.belongsTo(models.Question, {
         foreignKey: 'question_id',
         as: 'question'

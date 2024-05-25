@@ -29,7 +29,7 @@ module.exports = (sequelize, DataTypes) => {
       timestamps: false
     });
   
-    Question.associate = models => {
+    Question.associate = function(models) {
       Question.belongsTo(models.Test, {
         foreignKey: 'test_id',
         as: 'test'

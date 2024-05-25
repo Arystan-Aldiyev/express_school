@@ -30,7 +30,7 @@ module.exports = (sequelize, DataTypes) => {
       timestamps: false
     });
   
-    Test.associate = models => {
+    Test.associate = function(models) {
       Test.hasMany(models.Question, {
         foreignKey: 'test_id',
         as: 'questions'
