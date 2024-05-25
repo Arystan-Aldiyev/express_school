@@ -95,21 +95,23 @@ exports.findTestWithDetails = (req, res) => {
             }
         ]
     })
-        .then(data => {
-            if (data) {
-                res.send(data);
-            } else {
-                res.status(404).send({
-                    message: `Cannot find Test with id=${id}.`
-                });
-            }
-        })
-        .catch(err => {
-            res.status(500).send({
-                message: "Error retrieving Test with id=" + id
+    .then(data => {
+        if (data) {
+            res.send(data);
+        } else {
+            res.status(404).send({
+                message: `Cannot find Test with id=${id}.`
             });
+        }
+    })
+    .catch(err => {
+        console.error("Error retrieving Test with id=" + id, err); // Log the actual error
+        res.status(500).send({
+            message: "Error retrieving Test with id=" + id
         });
+    });
 };
+
 
 
 // Update a Test by the id in the request
