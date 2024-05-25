@@ -83,13 +83,6 @@ db.user.hasMany(db.message, { as: 'receivedMessages', foreignKey: 'user_id' });
 db.dashboardAnnouncement.belongsTo(db.user, { foreignKey: 'author_id' });
 db.user.hasMany(db.dashboardAnnouncement, { foreignKey: 'author_id' });
 
-// Call associate methods
-Object.keys(db).forEach(modelName => {
-    if (db[modelName].associate) {
-      console.log(`Associating model: ${modelName}`);
-      db[modelName].associate(db);
-    }
-  });
   
 
 module.exports = db;
