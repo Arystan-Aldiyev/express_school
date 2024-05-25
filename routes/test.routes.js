@@ -8,3 +8,5 @@ router.get('/tests/:id', [verifyToken, verifyIsAdmin || verifyIsTeacher], testCo
 router.post('/tests', [verifyToken, verifyIsAdmin || verifyIsTeacher], testController.createTest);
 router.put('/tests/:id', [verifyToken, verifyIsAdmin || verifyIsTeacher], testController.updateTest);
 router.delete('/tests/:id', [verifyToken, verifyIsAdmin || verifyIsTeacher], testController.deleteTest);
+
+module.exports = router;
