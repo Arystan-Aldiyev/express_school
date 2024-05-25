@@ -1,6 +1,8 @@
 const db = require("../models");
 const Group = db.group;
 const Test = db.test;
+const Question = db.question;
+const AnswerOption = db.answerOption;
 
 
 
@@ -60,6 +62,39 @@ exports.findOneTest = (req, res) => {
     const id = req.params.id;
 
     Test.findByPk(id)
+        .then(data => {
+            if (data) {
+                res.send(data);
+            } else {
+                res.status(404).send({
+                    message: `Cannot find Test with id=${id}.`
+                });
+            }
+        })
+        .catch(err => {
+            res.status(500).send({
+                message: "Error retrieving Test with id=" + id
+            });
+        });
+};
+
+exports.findTestWithDetails = (req, res) => {
+    const id = req.params.id;
+
+    Test.findByPk(id, {
+        include: [
+            {
+                model: Question,
+                as: 'questions',
+                include: [
+                    {
+                        model: AnswerOption,
+                        as: 'answerOptions'
+                    }
+                ]
+            }
+        ]
+    })
         .then(data => {
             if (data) {
                 res.send(data);

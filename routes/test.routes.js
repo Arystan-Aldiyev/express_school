@@ -2,7 +2,6 @@ const express = require('express');
 const router = express.Router();
 const { verifyToken, verifyIsAdmin, verifyIsTeacher } = require('../middleware/authJwt');
 const testController = require('../controllers/test.controller');
-
 /**
  * @swagger
  * components:
@@ -12,6 +11,55 @@ const testController = require('../controllers/test.controller');
  *       scheme: bearer
  *       bearerFormat: JWT
  *   schemas:
+ *     AnswerOption:
+ *       type: object
+ *       required:
+ *         - option_text
+ *       properties:
+ *         option_id:
+ *           type: integer
+ *         question_id:
+ *           type: integer
+ *         option_text:
+ *           type: string
+ *         is_correct:
+ *           type: boolean
+ *       example:
+ *         option_id: 1
+ *         question_id: 1
+ *         option_text: "Option A"
+ *         is_correct: true
+ *     Question:
+ *       type: object
+ *       required:
+ *         - question_text
+ *       properties:
+ *         question_id:
+ *           type: integer
+ *         test_id:
+ *           type: integer
+ *         question_text:
+ *           type: string
+ *         hint:
+ *           type: string
+ *         answerOptions:
+ *           type: array
+ *           items:
+ *             $ref: '#/components/schemas/AnswerOption'
+ *       example:
+ *         question_id: 1
+ *         test_id: 1
+ *         question_text: "What is 2+2?"
+ *         hint: "Think about basic addition."
+ *         answerOptions: 
+ *           - option_id: 1
+ *             question_id: 1
+ *             option_text: "Option A"
+ *             is_correct: true
+ *           - option_id: 2
+ *             question_id: 1
+ *             option_text: "Option B"
+ *             is_correct: false
  *     Test:
  *       type: object
  *       required:
@@ -30,12 +78,32 @@ const testController = require('../controllers/test.controller');
  *           type: integer
  *         max_attempts:
  *           type: integer
+ *         questions:
+ *           type: array
+ *           items:
+ *             $ref: '#/components/schemas/Question'
  *       example:
+ *         test_id: 1
  *         group_id: 1
- *         name: "Midterm Exam"
- *         time_open: "2024-06-01T10:00:00Z"
- *         duration_minutes: 90
+ *         name: "Sample Test"
+ *         time_open: "2024-05-25T08:00:00Z"
+ *         duration_minutes: 60
  *         max_attempts: 3
+ *         questions:
+ *           - question_id: 1
+ *             test_id: 1
+ *             question_text: "What is 2+2?"
+ *             hint: "Think about basic addition."
+ *             answerOptions:
+ *               - option_id: 1
+ *                 question_id: 1
+ *                 option_text: "Option A"
+ *                 is_correct: true
+ *               - option_id: 2
+ *                 question_id: 1
+ *                 option_text: "Option B"
+ *                 is_correct: false
+ * 
  * security:
  *   - bearerAuth: []
  * 
@@ -90,6 +158,34 @@ router.get('/tests', [verifyToken, verifyIsAdmin || verifyIsTeacher], testContro
  *         description: Test not found
  */
 router.get('/tests/:id', [verifyToken, verifyIsAdmin || verifyIsTeacher], testController.findOneTest);
+
+
+/**
+ * @swagger
+ * /api/tests/{id}/details:
+ *   get:
+ *     summary: Retrieve a test by ID including questions and answer options
+ *     tags: [Tests]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         schema:
+ *           type: integer
+ *         required: true
+ *         description: The test ID
+ *     responses:
+ *       200:
+ *         description: A test with questions and answer options
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/Test'
+ *       404:
+ *         description: Test not found
+ */
+router.get('/tests/:id/details', [verifyToken, verifyIsAdmin || verifyIsTeacher], testController.findTestWithDetails);
 
 /**
  * @swagger
