@@ -40,7 +40,7 @@ exports.createAnswerOptionsBulk = (req, res) => {
         is_correct: option.is_correct || false
     }));
 
-    AnswerOption.bulkCreate(answerOptions)
+    AnswerOption.bulkCreate(answerOptions, { returning: true })
         .then(data => {
             res.status(201).send(data);
         })

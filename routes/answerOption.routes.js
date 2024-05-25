@@ -18,8 +18,6 @@ const answerOptionController = require('../controllers/answerOption.controller')
  *         - question_id
  *         - option_text
  *       properties:
- *         option_id:
- *           type: integer
  *         question_id:
  *           type: integer
  *         option_text:
