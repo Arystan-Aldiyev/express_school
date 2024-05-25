@@ -5,6 +5,34 @@ const questionController = require('../controllers/question.controller');
 
 /**
  * @swagger
+ * components:
+ *   securitySchemes:
+ *     bearerAuth:
+ *       type: http
+ *       scheme: bearer
+ *       bearerFormat: JWT
+ *   schemas:
+ *     Question:
+ *       type: object
+ *       required:
+ *         - question_text
+ *         - test_id
+ *       properties:
+ *         question_id:
+ *           type: integer
+ *         test_id:
+ *           type: integer
+ *         question_text:
+ *           type: string
+ *         hint:
+ *           type: string
+ *       example:
+ *         test_id: 1
+ *         question_text: "<p>If (a, b) is a solution to the following system of inequalities, which of the following represents the minimum value of b?</p><p><code>y &gt; 2(x-3) + 5</code><br><code>y &lt; x + 3</code></p>"
+ *         hint: "Think about the intersection of the two inequalities."
+ * security:
+ *   - bearerAuth: []
+ * 
  * tags:
  *   name: Questions
  *   description: API for managing questions

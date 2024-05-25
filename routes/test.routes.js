@@ -5,6 +5,40 @@ const testController = require('../controllers/test.controller');
 
 /**
  * @swagger
+ * components:
+ *   securitySchemes:
+ *     bearerAuth:
+ *       type: http
+ *       scheme: bearer
+ *       bearerFormat: JWT
+ *   schemas:
+ *     Test:
+ *       type: object
+ *       required:
+ *         - name
+ *       properties:
+ *         test_id:
+ *           type: integer
+ *         group_id:
+ *           type: integer
+ *         name:
+ *           type: string
+ *         time_open:
+ *           type: string
+ *           format: date-time
+ *         duration_minutes:
+ *           type: integer
+ *         max_attempts:
+ *           type: integer
+ *       example:
+ *         group_id: 1
+ *         name: "Midterm Exam"
+ *         time_open: "2024-06-01T10:00:00Z"
+ *         duration_minutes: 90
+ *         max_attempts: 3
+ * security:
+ *   - bearerAuth: []
+ * 
  * tags:
  *   name: Tests
  *   description: API for managing tests
