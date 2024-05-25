@@ -1,62 +1,42 @@
+const fs = require('fs');
+const path = require('path');
 const db = require("../models");
 const Question = db.question;
-const Test = db.test;
 
-// Create and Save a new Question
+const questionUploadsDir = path.join('/var/data', 'uploads', 'questions');
+
 exports.createQuestion = (req, res) => {
-    // Validate request
-    if (!req.body.question_text || !req.body.test_id) {
-        return res.status(400).send({
-            message: "Question text and test ID cannot be empty!"
-        });
+    let imagePath = null;
+    if (req.file) {
+        const filename = `${Date.now()}-${req.file.originalname}`;
+        const filepath = path.join(questionUploadsDir, filename);
+        fs.writeFileSync(filepath, req.file.buffer);
+        imagePath = `/uploads/questions/${filename}`;
     }
 
-    // Create a Question
-    const question = {
+    Question.create({
         test_id: req.body.test_id,
         question_text: req.body.question_text,
-        hint: req.body.hint
-    };
-
-    Test.findByPk(question.test_id)
-        .then(test => {
-            if (!test) {
-                return res.status(404).send({
-                    message: "Test not found!"
-                });
-            }
-
-            Question.create(question)
-                .then(data => {
-                    res.send(data);
-                })
-                .catch(err => {
-                    res.status(500).send({
-                        message: err.message || "Some error occurred while creating the Question."
-                    });
-                });
-        })
-        .catch(err => {
-            res.status(500).send({
-                message: err.message || "Error retrieving Test."
-            });
-        });
+        hint: req.body.hint,
+        image: imagePath // Store the file path as URL
+    }).then(question => {
+        res.status(201).send(question);
+    }).catch(err => {
+        res.status(500).send({ message: err.message });
+    });
 };
 
-// Retrieve all Questions from the database.
-exports.findAllQuestions = (req, res) => {
-    Question.findAll()
-        .then(data => {
-            res.send(data);
-        })
-        .catch(err => {
-            res.status(500).send({
-                message: err.message || "Some error occurred while retrieving questions."
-            });
-        });
+// Get all questions
+exports.findAllQuestions = async (req, res) => {
+    try {
+        const questions = await Question.findAll();
+        res.status(200).send(questions);
+    } catch (err) {
+        res.status(500).send({ message: err.message });
+    }
 };
 
-// Find a single Question with an id
+// Find a single question by ID
 exports.findOneQuestion = (req, res) => {
     const id = req.params.id;
 
@@ -77,68 +57,69 @@ exports.findOneQuestion = (req, res) => {
         });
 };
 
-// Update a Question by the id in the request
+// Update a question by ID
 exports.updateQuestion = (req, res) => {
     const id = req.params.id;
 
-    Question.update(req.body, {
-        where: { question_id: id }
-    })
+    Question.findByPk(id)
+        .then(question => {
+            if (!question) {
+                return res.status(404).send({
+                    message: `Cannot update Question with id=${id}. Maybe Question was not found!`
+                });
+            }
+
+            let imagePath = question.image;
+            if (req.file) {
+                const filename = `${Date.now()}-${req.file.originalname}`;
+                const filepath = path.join(questionUploadsDir, filename);
+                fs.writeFileSync(filepath, req.file.buffer);
+                imagePath = `/uploads/questions/${filename}`;
+            }
+
+            return Question.update({
+                test_id: req.body.test_id,
+                question_text: req.body.question_text,
+                hint: req.body.hint,
+                image: imagePath
+            }, {
+                where: { question_id: id }
+            });
+        })
         .then(num => {
             if (num == 1) {
-                res.send({
-                    message: "Question was updated successfully."
-                });
+                res.send({ message: "Question was updated successfully." });
             } else {
-                res.send({
-                    message: `Cannot update Question with id=${id}. Maybe Question was not found or req.body is empty!`
-                });
+                res.send({ message: `Cannot update Question with id=${id}. Maybe Question was not found or req.body is empty!` });
             }
         })
         .catch(err => {
-            res.status(500).send({
-                message: "Error updating Question with id=" + id
-            });
+            res.status(500).send({ message: err.message });
         });
 };
 
-// Delete a Question with the specified id in the request
+// Delete a question by ID
 exports.deleteQuestion = (req, res) => {
-    const id = req.params.id;
-
-    Question.destroy({
-        where: { question_id: id }
-    })
-        .then(num => {
-            if (num == 1) {
-                res.send({
-                    message: "Question was deleted successfully!"
-                });
-            } else {
-                res.send({
-                    message: `Cannot delete Question with id=${id}. Maybe Question was not found!`
-                });
+    Question.findOne({
+        where: { question_id: req.params.id }
+    }).then(question => {
+        if (question) {
+            if (question.image) {
+                fs.unlinkSync(path.join(questionUploadsDir, path.basename(question.image))); // Remove the file from the file system
             }
-        })
-        .catch(err => {
-            res.status(500).send({
-                message: "Could not delete Question with id=" + id
+            return Question.destroy({
+                where: { question_id: req.params.id }
             });
-        });
-};
-
-// Delete all Questions from the database.
-exports.deleteAllQuestions = (req, res) => {
-    Question.destroy({
-        where: {},
-        truncate: false
-    })
-        .then(nums => {
-            res.send({ message: `${nums} Questions were deleted successfully!` });
-        })
-        .catch(err => {
-            res.status(500).send({
-                message: err.message || "Some error occurred while removing all questions."
-            });
-        });
+        } else {
+            throw new Error(`Question with id=${req.params.id} not found!`);
+        }
+    }).then(num => {
+        if (num == 1) {
+            res.send({ message: "Question was deleted successfully!" });
+        } else {
+            res.send({ message: `Cannot delete Question with id=${req.params.id}. Maybe Question was not found!` });
+        }
+    }).catch(err => {
+        res.status(500).send({ message: err.message });
+    });
 };

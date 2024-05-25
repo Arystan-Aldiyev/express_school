@@ -2,6 +2,10 @@ const express = require('express');
 const router = express.Router();
 const { verifyToken, verifyIsAdmin, verifyIsTeacher } = require('../middleware/authJwt');
 const questionController = require('../controllers/question.controller');
+const multer = require('multer');
+
+const storage = multer.memoryStorage();
+const upload = multer({ storage: storage });
 
 /**
  * @swagger
@@ -26,10 +30,14 @@ const questionController = require('../controllers/question.controller');
  *           type: string
  *         hint:
  *           type: string
+ *         image:
+ *           type: string
+ *           format: uri
  *       example:
  *         test_id: 1
  *         question_text: "<p>If (a, b) is a solution to the following system of inequalities, which of the following represents the minimum value of b?</p><p><code>y &gt; 2(x-3) + 5</code><br><code>y &lt; x + 3</code></p>"
  *         hint: "Think about the intersection of the two inequalities."
+ *         image: "https://your-cloud-storage-service.com/path-to-your-image.png"
  * security:
  *   - bearerAuth: []
  * 
@@ -96,9 +104,19 @@ router.get('/questions/:id', [verifyToken, verifyIsAdmin || verifyIsTeacher], qu
  *     requestBody:
  *       required: true
  *       content:
- *         application/json:
+ *         multipart/form-data:
  *           schema:
- *             $ref: '#/components/schemas/Question'
+ *             type: object
+ *             properties:
+ *               test_id:
+ *                 type: integer
+ *               question_text:
+ *                 type: string
+ *               hint:
+ *                 type: string
+ *               image:
+ *                 type: string
+ *                 format: binary
  *     responses:
  *       201:
  *         description: Question created
@@ -107,7 +125,7 @@ router.get('/questions/:id', [verifyToken, verifyIsAdmin || verifyIsTeacher], qu
  *             schema:
  *               $ref: '#/components/schemas/Question'
  */
-router.post('/questions', [verifyToken, verifyIsAdmin || verifyIsTeacher], questionController.createQuestion);
+router.post('/questions', [verifyToken, verifyIsAdmin || verifyIsTeacher], upload.single('image'), questionController.createQuestion);
 
 /**
  * @swagger
@@ -127,9 +145,19 @@ router.post('/questions', [verifyToken, verifyIsAdmin || verifyIsTeacher], quest
  *     requestBody:
  *       required: true
  *       content:
- *         application/json:
+ *         multipart/form-data:
  *           schema:
- *             $ref: '#/components/schemas/Question'
+ *             type: object
+ *             properties:
+ *               test_id:
+ *                 type: integer
+ *               question_text:
+ *                 type: string
+ *               hint:
+ *                 type: string
+ *               image:
+ *                 type: string
+ *                 format: binary
  *     responses:
  *       200:
  *         description: Question updated successfully
@@ -140,7 +168,7 @@ router.post('/questions', [verifyToken, verifyIsAdmin || verifyIsTeacher], quest
  *       404:
  *         description: Question not found
  */
-router.put('/questions/:id', [verifyToken, verifyIsAdmin || verifyIsTeacher], questionController.updateQuestion);
+router.put('/questions/:id', [verifyToken, verifyIsAdmin || verifyIsTeacher], upload.single('image'), questionController.updateQuestion);
 
 /**
  * @swagger
@@ -164,19 +192,5 @@ router.put('/questions/:id', [verifyToken, verifyIsAdmin || verifyIsTeacher], qu
  *         description: Question not found
  */
 router.delete('/questions/:id', [verifyToken, verifyIsAdmin || verifyIsTeacher], questionController.deleteQuestion);
-
-/**
- * @swagger
- * /api/questions:
- *   delete:
- *     summary: Delete all questions
- *     tags: [Questions]
- *     security:
- *       - bearerAuth: []
- *     responses:
- *       200:
- *         description: All questions deleted successfully
- */
-router.delete('/questions', [verifyToken, verifyIsAdmin || verifyIsTeacher], questionController.deleteAllQuestions);
 
 module.exports = router;

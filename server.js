@@ -40,12 +40,19 @@ app.use('/api', questionRoutes);
 
 app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerSpec));
 
-const uploadsDir = path.join('/var/data', 'uploads');
+const uploadsDir = path.join('/var/data', 'uploads', 'dashboards');
 if (!fs.existsSync(uploadsDir)) {
     fs.mkdirSync(uploadsDir, { recursive: true });
 }
 
-app.use('/uploads', express.static(uploadsDir));
+const questionUploadsDir = path.join('/var/data', 'uploads', 'questions');
+if (!fs.existsSync(questionUploadsDir)) {
+    fs.mkdirSync(questionUploadsDir, { recursive: true });
+}
+
+
+app.use('/uploads/questions', express.static(questionUploadsDir));
+app.use('/uploads/dashboards', express.static(uploadsDir));
 
 const PORT = process.env.PORT || 3000;
 

@@ -19,6 +19,10 @@ module.exports = (sequelize, DataTypes) => {
       hint: {
         type: DataTypes.TEXT,
         allowNull: true
+      },
+      image: {
+        type: DataTypes.STRING,
+        allowNull: true
       }
     }, {
       tableName: 'questions',

@@ -4,7 +4,7 @@ const db = require("../models");
 const DashboardAnnouncement = db.dashboardAnnouncement;
 const DashboardCountdown = db.dashboardCountdown;
 
-const uploadsDir = path.join('/var/data', 'uploads');
+const uploadsDir = path.join('/var/data', 'uploads', 'dashboards');
 
 exports.createAnnouncement = (req, res) => {
     let imagePath = null;
@@ -12,7 +12,7 @@ exports.createAnnouncement = (req, res) => {
         const filename = `${Date.now()}-${req.file.originalname}`;
         const filepath = path.join(uploadsDir, filename);
         fs.writeFileSync(filepath, req.file.buffer);
-        imagePath = `/uploads/${filename}`;
+        imagePath = `/uploads/dashboards/${filename}`;
     }
 
     DashboardAnnouncement.create({
@@ -49,7 +49,7 @@ exports.updateAnnouncement = (req, res) => {
         const filename = `${Date.now()}-${req.file.originalname}`;
         const filepath = path.join(uploadsDir, filename);
         fs.writeFileSync(filepath, req.file.buffer);
-        imagePath = `/uploads/${filename}`;
+        imagePath = `/uploads/dashboards/${filename}`;
     }
 
     DashboardAnnouncement.update({
