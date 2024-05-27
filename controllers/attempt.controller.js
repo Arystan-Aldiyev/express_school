@@ -32,7 +32,6 @@ exports.createAttempt = (req, res) => {
         });
 };
 
-// Submit and Evaluate an Attempt
 exports.submitAttempt = async (req, res) => {
     const { user_id, test_id } = req.body;
 
@@ -45,16 +44,16 @@ exports.submitAttempt = async (req, res) => {
     let test = await db.test.findByPk(test_id);
 
     if (test.max_attempts !== null) {
-        let attempts = await Attempt.count({
+        let attempts = await Attempt.findAll({
             where: { user_id: user_id, test_id: test_id }
         });
 
-        if (attempts >= test.max_attempts) {
-            return res.status(403).send({
+        if (attempts.length >= test.max_attempts) {
+            return res.status(400).send({
                 message: "Maximum attempts reached for the test."
             });
         }
-    }
+    } 
 
     try {
         let attempt = await Attempt.findOne({
@@ -71,17 +70,18 @@ exports.submitAttempt = async (req, res) => {
         let correctAnswersCount = 0;
 
         for (const answer of answers) {
-            const { question_id, student_answer: selected_option_id } = answer;
+            const { question_id, student_answer } = answer;
 
-            // Check if the selected option is correct
-            const selectedOption = await AnswerOption.findOne({
+            // Check if the student_answer text matches any correct option
+            const correctOption = await AnswerOption.findOne({
                 where: {
-                    option_id: selected_option_id,
-                    question_id: question_id
+                    question_id: question_id,
+                    option_text: student_answer,
+                    is_correct: true
                 }
             });
 
-            if (selectedOption && selectedOption.is_correct) {
+            if (correctOption) {
                 correctAnswersCount++;
             }
         }
@@ -102,6 +102,7 @@ exports.submitAttempt = async (req, res) => {
         });
     }
 };
+
 
 
 // Retrieve all attempts for a user
