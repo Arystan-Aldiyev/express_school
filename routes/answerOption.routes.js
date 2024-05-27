@@ -40,7 +40,6 @@ const answerOptionController = require('../controllers/answerOption.controller')
  *         is_correct:
  *           type: boolean
  *       example:
- *         option_id: 1
  *         question_id: 1
  *         option_text: "Option A"
  *         is_correct: true

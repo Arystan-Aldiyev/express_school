@@ -25,9 +25,6 @@ module.exports = (sequelize, DataTypes) => {
       submitted_at: {
         type: DataTypes.DATE,
         defaultValue: DataTypes.NOW
-      },
-      is_correct: {
-        type: DataTypes.BOOLEAN
       }
     }, {
       tableName: 'answers',
