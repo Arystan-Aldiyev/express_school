@@ -120,32 +120,36 @@ exports.deleteAttempt = (req, res) => {
 };
 
 
-// Submit and Evaluate an Attempt
 exports.submitAttempt = async (req, res) => {
-    const { user_id, test_id, answers } = req.body;
+    const { user_id, test_id } = req.body;
 
     // Validate request
-    if (!user_id || !test_id || !answers || !Array.isArray(answers)) {
+    if (!user_id || !test_id) {
         return res.status(400).send({
-            message: "Invalid request. User ID, Test ID, and answers are required."
+            message: "User ID and Test ID are required."
         });
     }
 
     try {
-        // Create the attempt record
-        const attempt = await Attempt.create({
-            test_id: test_id,
-            user_id: user_id,
-            start_time: new Date(),
-            end_time: new Date(),
-            score: 0 // Initialize with 0, will update after evaluation
+        // Fetch the existing attempt record
+        let attempt = await Attempt.findOne({
+            where: { user_id: user_id, test_id: test_id, end_time: null }
         });
+
+        if (!attempt) {
+            return res.status(404).send({
+                message: "No ongoing attempt found for the user and test."
+            });
+        }
+
+        // Retrieve all answers for this attempt
+        const answers = await Answer.findAll({ where: { attempt_id: attempt.attempt_id } });
 
         let correctAnswersCount = 0;
 
         // Evaluate the answers
         for (const answer of answers) {
-            const { question_id, selected_option_id } = answer;
+            const { question_id, student_answer: selected_option_id } = answer;
 
             // Fetch the correct answer for the question
             const correctOption = await AnswerOption.findOne({
@@ -155,27 +159,18 @@ exports.submitAttempt = async (req, res) => {
                 }
             });
 
-            // Check if the selected option is correct
             const isCorrect = correctOption && correctOption.option_id === selected_option_id;
             if (isCorrect) {
                 correctAnswersCount++;
             }
-
-            // Save the answer
-            await Answer.create({
-                user_id: user_id,
-                question_id: question_id,
-                selected_option_id: selected_option_id,
-                attempt_id: attempt.attempt_id
-            });
         }
 
-        // Calculate the score (for simplicity, assuming each question has equal weight)
+        // Calculate the score
         const totalQuestions = answers.length;
         const score = (correctAnswersCount / totalQuestions) * 100;
 
-        // Update the attempt with the calculated score
-        await attempt.update({ score: score });
+        // Update the attempt with the score and end time
+        await attempt.update({ score: score, end_time: new Date() });
 
         res.send({
             message: "Attempt submitted and evaluated successfully.",

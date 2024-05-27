@@ -5,14 +5,12 @@ const Answer = db.answer;
 exports.createAnswer = (req, res) => {
     const { question_id, user_id, student_answer, attempt_id } = req.body;
 
-    // Validate request
     if (!question_id || !user_id || !student_answer || !attempt_id) {
         return res.status(400).send({
             message: "Question ID, User ID, Student Answer, and Attempt ID cannot be empty!"
         });
     }
 
-    // Create an Answer
     const answer = {
         question_id: question_id,
         user_id: user_id,
@@ -20,7 +18,6 @@ exports.createAnswer = (req, res) => {
         attempt_id: attempt_id
     };
 
-    // Save Answer in the database
     Answer.create(answer)
         .then(data => {
             res.send(data);
