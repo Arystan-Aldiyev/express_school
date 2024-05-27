@@ -1,29 +1,26 @@
 const db = require("../models");
 const Attempt = db.attempt;
 const Answer = db.answer;
-const Question = db.question;
 const AnswerOption = db.answerOption;
 
-
-// Create and Save a new Attempt
+// Create a new Attempt
 exports.createAttempt = (req, res) => {
-    // Validate request
-    if (!req.body.test_id || !req.body.user_id) {
+    const { user_id, test_id } = req.body;
+
+    if (!user_id || !test_id) {
         return res.status(400).send({
-            message: "Test ID and User ID cannot be empty!"
+            message: "User ID and Test ID cannot be empty!"
         });
     }
 
-    // Create an Attempt
     const attempt = {
-        test_id: req.body.test_id,
-        user_id: req.body.user_id,
-        start_time: req.body.start_time,
-        end_time: req.body.end_time,
-        score: req.body.score
+        user_id: user_id,
+        test_id: test_id,
+        start_time: new Date(),
+        end_time: null,
+        score: null
     };
 
-    // Save Attempt in the database
     Attempt.create(attempt)
         .then(data => {
             res.send(data);
@@ -35,95 +32,10 @@ exports.createAttempt = (req, res) => {
         });
 };
 
-// Retrieve all Attempts from the database
-exports.findAllAttempts = (req, res) => {
-    Attempt.findAll()
-        .then(data => {
-            res.send(data);
-        })
-        .catch(err => {
-            res.status(500).send({
-                message: err.message || "Some error occurred while retrieving attempts."
-            });
-        });
-};
-
-// Find a single Attempt with an ID
-exports.findOneAttempt = (req, res) => {
-    const id = req.params.id;
-
-    Attempt.findByPk(id)
-        .then(data => {
-            if (data) {
-                res.send(data);
-            } else {
-                res.status(404).send({
-                    message: `Cannot find Attempt with id=${id}.`
-                });
-            }
-        })
-        .catch(err => {
-            res.status(500).send({
-                message: "Error retrieving Attempt with id=" + id
-            });
-        });
-};
-
-// Update an Attempt by the ID in the request
-exports.updateAttempt = (req, res) => {
-    const id = req.params.id;
-
-    Attempt.update(req.body, {
-        where: { attempt_id: id }
-    })
-        .then(num => {
-            if (num == 1) {
-                res.send({
-                    message: "Attempt was updated successfully."
-                });
-            } else {
-                res.send({
-                    message: `Cannot update Attempt with id=${id}. Maybe Attempt was not found or req.body is empty!`
-                });
-            }
-        })
-        .catch(err => {
-            res.status(500).send({
-                message: "Error updating Attempt with id=" + id
-            });
-        });
-};
-
-// Delete an Attempt with the specified ID in the request
-exports.deleteAttempt = (req, res) => {
-    const id = req.params.id;
-
-    Attempt.destroy({
-        where: { attempt_id: id }
-    })
-        .then(num => {
-            if (num == 1) {
-                res.send({
-                    message: "Attempt was deleted successfully!"
-                });
-            } else {
-                res.send({
-                    message: `Cannot delete Attempt with id=${id}. Maybe Attempt was not found!`
-                });
-            }
-        })
-        .catch(err => {
-            res.status(500).send({
-                message: "Could not delete Attempt with id=" + id
-            });
-        });
-};
-
-
+// Submit and Evaluate an Attempt
 exports.submitAttempt = async (req, res) => {
     const { user_id, test_id } = req.body;
 
-    // Validate request
     if (!user_id || !test_id) {
         return res.status(400).send({
             message: "User ID and Test ID are required."
@@ -131,7 +43,6 @@ exports.submitAttempt = async (req, res) => {
     }
 
     try {
-        // Fetch the existing attempt record
         let attempt = await Attempt.findOne({
             where: { user_id: user_id, test_id: test_id, end_time: null }
         });
@@ -142,16 +53,11 @@ exports.submitAttempt = async (req, res) => {
             });
         }
 
-        // Retrieve all answers for this attempt
         const answers = await Answer.findAll({ where: { attempt_id: attempt.attempt_id } });
-
         let correctAnswersCount = 0;
 
-        // Evaluate the answers
         for (const answer of answers) {
             const { question_id, student_answer: selected_option_id } = answer;
-
-            // Fetch the correct answer for the question
             const correctOption = await AnswerOption.findOne({
                 where: {
                     question_id: question_id,
@@ -165,11 +71,9 @@ exports.submitAttempt = async (req, res) => {
             }
         }
 
-        // Calculate the score
         const totalQuestions = answers.length;
         const score = (correctAnswersCount / totalQuestions) * 100;
 
-        // Update the attempt with the score and end time
         await attempt.update({ score: score, end_time: new Date() });
 
         res.send({
@@ -182,4 +86,34 @@ exports.submitAttempt = async (req, res) => {
             error: error.message
         });
     }
+};
+
+// Retrieve all attempts for a user
+exports.findAllAttempts = (req, res) => {
+    const user_id = req.params.user_id;
+
+    Attempt.findAll({ where: { user_id: user_id } })
+        .then(data => {
+            res.send(data);
+        })
+        .catch(err => {
+            res.status(500).send({
+                message: err.message || "Some error occurred while retrieving attempts."
+            });
+        });
+};
+
+// Retrieve all answers for an attempt
+exports.findAnswersForAttempt = (req, res) => {
+    const attempt_id = req.params.attempt_id;
+
+    Answer.findAll({ where: { attempt_id: attempt_id } })
+        .then(data => {
+            res.send(data);
+        })
+        .catch(err => {
+            res.status(500).send({
+                message: err.message || "Some error occurred while retrieving answers."
+            });
+        });
 };
