@@ -42,6 +42,20 @@ exports.submitAttempt = async (req, res) => {
         });
     }
 
+    let test = await db.test.findByPk(test_id);
+
+    if (test.max_attempts !== null) {
+        let attempts = await Attempt.count({
+            where: { user_id: user_id, test_id: test_id }
+        });
+
+        if (attempts >= test.max_attempts) {
+            return res.status(403).send({
+                message: "Maximum attempts reached for the test."
+            });
+        }
+    }
+
     try {
         let attempt = await Attempt.findOne({
             where: { user_id: user_id, test_id: test_id, end_time: null }
@@ -58,15 +72,16 @@ exports.submitAttempt = async (req, res) => {
 
         for (const answer of answers) {
             const { question_id, student_answer: selected_option_id } = answer;
-            const correctOption = await AnswerOption.findOne({
+
+            // Check if the selected option is correct
+            const selectedOption = await AnswerOption.findOne({
                 where: {
-                    question_id: question_id,
-                    is_correct: true
+                    option_id: selected_option_id,
+                    question_id: question_id
                 }
             });
 
-            const isCorrect = correctOption && correctOption.option_id === selected_option_id;
-            if (isCorrect) {
+            if (selectedOption && selectedOption.is_correct) {
                 correctAnswersCount++;
             }
         }
@@ -87,6 +102,7 @@ exports.submitAttempt = async (req, res) => {
         });
     }
 };
+
 
 // Retrieve all attempts for a user
 exports.findAllAttempts = (req, res) => {
