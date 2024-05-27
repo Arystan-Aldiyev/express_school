@@ -28,10 +28,26 @@ const answerOptionController = require('../controllers/answerOption.controller')
  *         question_id: 1
  *         option_text: "Option A"
  *         is_correct: true
+ *     AnswerOptionResponse:
+ *       type: object
+ *       properties:
+ *         option_id:
+ *           type: integer
+ *         question_id:
+ *           type: integer
+ *         option_text:
+ *           type: string
+ *         is_correct:
+ *           type: boolean
+ *       example:
+ *         option_id: 1
+ *         question_id: 1
+ *         option_text: "Option A"
+ *         is_correct: true
  *     AnswerOptions:
  *       type: array
  *       items:
- *         $ref: '#/components/schemas/AnswerOption'
+ *         $ref: '#/components/schemas/AnswerOptionResponse'
  * security:
  *   - bearerAuth: []
  * 
@@ -60,7 +76,7 @@ const answerOptionController = require('../controllers/answerOption.controller')
  *         content:
  *           application/json:
  *             schema:
- *               $ref: '#/components/schemas/AnswerOption'
+ *               $ref: '#/components/schemas/AnswerOptionResponse'
  */
 router.post('/answerOptions', [verifyToken, verifyIsAdmin || verifyIsTeacher], answerOptionController.createAnswerOption);
 
@@ -80,7 +96,9 @@ router.post('/answerOptions', [verifyToken, verifyIsAdmin || verifyIsTeacher], a
  *             type: object
  *             properties:
  *               answerOptions:
- *                 $ref: '#/components/schemas/AnswerOptions'
+ *                 type: array
+ *                 items:
+ *                   $ref: '#/components/schemas/AnswerOption'
  *     responses:
  *       201:
  *         description: Answer options created
@@ -114,7 +132,7 @@ router.post('/answerOptions/bulk', [verifyToken, verifyIsAdmin || verifyIsTeache
  *             schema:
  *               type: array
  *               items:
- *                 $ref: '#/components/schemas/AnswerOption'
+ *                 $ref: '#/components/schemas/AnswerOptionResponse'
  */
 router.get('/questions/:question_id/answerOptions', [verifyToken, verifyIsAdmin || verifyIsTeacher], answerOptionController.findAllAnswerOptions);
 
@@ -139,7 +157,7 @@ router.get('/questions/:question_id/answerOptions', [verifyToken, verifyIsAdmin 
  *         content:
  *           application/json:
  *             schema:
- *               $ref: '#/components/schemas/AnswerOption'
+ *               $ref: '#/components/schemas/AnswerOptionResponse'
  *       404:
  *         description: Answer option not found
  */
@@ -172,7 +190,7 @@ router.get('/answerOptions/:id', [verifyToken, verifyIsAdmin || verifyIsTeacher]
  *         content:
  *           application/json:
  *             schema:
- *               $ref: '#/components/schemas/AnswerOption'
+ *               $ref: '#/components/schemas/AnswerOptionResponse'
  *       404:
  *         description: Answer option not found
  */
