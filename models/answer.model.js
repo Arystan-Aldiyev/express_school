@@ -22,6 +22,13 @@ module.exports = (sequelize, DataTypes) => {
       student_answer: {
         type: DataTypes.STRING
       },
+      attempt_id: {
+        type: DataTypes.INTEGER,
+        references: {
+            model: 'attempts',
+            key: 'attempt_id'
+        }
+      },
       submitted_at: {
         type: DataTypes.DATE,
         defaultValue: DataTypes.NOW

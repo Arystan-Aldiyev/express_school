@@ -57,6 +57,9 @@ db.test.hasMany(db.question, { foreignKey: 'test_id', as: 'questions'});
 db.answerOption.belongsTo(db.question, { foreignKey: 'question_id', as: 'questions'});
 db.question.hasMany(db.answerOption, { foreignKey: 'question_id', as: 'answerOptions'});
 
+db.attempt.hasMany(db.answer, { foreignKey: 'attempt_id' });
+db.answer.belongsTo(db.attempt, { foreignKey: 'attempt_id' });
+
 db.attempt.belongsTo(db.test, { foreignKey: 'test_id' });
 db.test.hasMany(db.attempt, { foreignKey: 'test_id' });
 db.attempt.belongsTo(db.user, { foreignKey: 'user_id' });
