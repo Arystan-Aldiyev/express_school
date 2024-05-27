@@ -13,6 +13,7 @@ const testRoutes = require('./routes/test.routes');
 const groupMembershipRoutes = require('./routes/groupMembership.routes');
 const questionRoutes = require('./routes/question.routes');
 const answerOptionRoutes = require('./routes/answerOption.routes');
+const attemptRoutes = require('./routes/attempt.routes');
 const answerRoutes = require('./routes/answer.routes');
 
 
@@ -40,6 +41,7 @@ app.use('/api', groupMembershipRoutes);
 app.use('/api', testRoutes);
 app.use('/api', questionRoutes);
 app.use('/api', answerOptionRoutes);
+app.use('/api', attemptRoutes);
 app.use('/api', answerRoutes);
 
 app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerSpec));
