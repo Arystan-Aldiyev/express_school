@@ -134,3 +134,27 @@ exports.findAnswersForAttempt = (req, res) => {
             });
         });
 };
+
+exports.deleteAttempt = (req, res) => {
+    const id = req.params.id;
+
+    Attempt.destroy({
+        where: { attempt_id: id }
+    })
+        .then(num => {
+            if (num == 1) {
+                res.send({
+                    message: "Attempt was deleted successfully!"
+                });
+            } else {
+                res.status(404).send({
+                    message: `Cannot delete Attempt with id=${id}. Maybe Attempt was not found!`
+                });
+            }
+        })
+        .catch(err => {
+            res.status(500).send({
+                message: "Could not delete Attempt with id=" + id
+            });
+        });
+}

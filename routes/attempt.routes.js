@@ -113,4 +113,29 @@ router.get('/users/:user_id/attempts', [verifyToken], attemptController.findAllA
  */
 router.get('/attempts/:attempt_id/answers', [verifyToken], attemptController.findAnswersForAttempt);
 
+
+/**
+ * @swagger
+ * /api/attempts/{id}:
+ *   delete:
+ *     summary: Delete an attempt
+ *     tags: [Attempts]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         schema:
+ *           type: integer
+ *         required: true
+ *         description: The attempt ID
+ *     responses:
+ *       200:
+ *         description: Attempt deleted
+ *       404:
+ *         description: Attempt not found
+ */
+router.delete('/attempts/:id', [verifyToken], attemptController.deleteAttempt);
+
+
 module.exports = router;
