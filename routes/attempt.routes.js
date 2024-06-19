@@ -49,6 +49,15 @@ router.post('/attempts', [verifyToken], attemptController.createAttempt);
  *                 type: integer
  *               test_id:
  *                 type: integer
+ *               answers:
+ *                 type: array
+ *                 items:
+ *                   type: object
+ *                   properties:
+ *                     question_id:
+ *                       type: integer
+ *                     student_answer:
+ *                       type: string
  *     responses:
  *       200:
  *         description: Attempt submitted and evaluated successfully
@@ -113,7 +122,6 @@ router.get('/users/:user_id/attempts', [verifyToken], attemptController.findAllA
  */
 router.get('/attempts/:attempt_id/answers', [verifyToken], attemptController.findAnswersForAttempt);
 
-
 /**
  * @swagger
  * /api/attempts/{id}:
@@ -136,6 +144,5 @@ router.get('/attempts/:attempt_id/answers', [verifyToken], attemptController.fin
  *         description: Attempt not found
  */
 router.delete('/attempts/:id', [verifyToken], attemptController.deleteAttempt);
-
 
 module.exports = router;

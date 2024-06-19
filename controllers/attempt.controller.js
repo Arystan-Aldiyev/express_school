@@ -2,9 +2,11 @@ const db = require("../models");
 const Attempt = db.attempt;
 const Answer = db.answer;
 const AnswerOption = db.answerOption;
+const Test = db.test;
+const Question = db.question;
 
-// Create a new Attempt
-exports.createAttempt = (req, res) => {
+// Create a new Attempt and return the test with questions
+exports.createAttempt = async (req, res) => {
     const { user_id, test_id } = req.body;
 
     if (!user_id || !test_id) {
@@ -21,39 +23,49 @@ exports.createAttempt = (req, res) => {
         score: null
     };
 
-    Attempt.create(attempt)
-        .then(data => {
-            res.send(data);
-        })
-        .catch(err => {
-            res.status(500).send({
-                message: err.message || "Some error occurred while creating the Attempt."
-            });
-        });
-};
-
-exports.submitAttempt = async (req, res) => {
-    const { user_id, test_id } = req.body;
-
-    if (!user_id || !test_id) {
-        return res.status(400).send({
-            message: "User ID and Test ID are required."
-        });
-    }
-
-    let test = await db.test.findByPk(test_id);
-
-    if (test.max_attempts !== null) {
-        let attempts = await Attempt.findAll({
-            where: { user_id: user_id, test_id: test_id }
+    try {
+        const newAttempt = await Attempt.create(attempt);
+        const testWithQuestions = await Test.findByPk(test_id, {
+            include: [
+                {
+                    model: Question,
+                    as: 'questions',
+                    include: [
+                        {
+                            model: AnswerOption,
+                            as: 'answerOptions'
+                        }
+                    ]
+                }
+            ]
         });
 
-        if (attempts.length >= test.max_attempts) {
-            return res.status(400).send({
-                message: "Maximum attempts reached for the test."
+        if (!testWithQuestions) {
+            return res.status(404).send({
+                message: "Test not found."
             });
         }
-    } 
+
+        res.send({
+            attempt: newAttempt,
+            test: testWithQuestions
+        });
+    } catch (err) {
+        res.status(500).send({
+            message: err.message || "Some error occurred while creating the Attempt."
+        });
+    }
+};
+
+// Submit an attempt with answers and calculate the score
+exports.submitAttempt = async (req, res) => {
+    const { user_id, test_id, answers } = req.body;
+
+    if (!user_id || !test_id || !answers || !Array.isArray(answers)) {
+        return res.status(400).send({
+            message: "User ID, Test ID, and answers are required."
+        });
+    }
 
     try {
         let attempt = await Attempt.findOne({
@@ -66,7 +78,6 @@ exports.submitAttempt = async (req, res) => {
             });
         }
 
-        const answers = await Answer.findAll({ where: { attempt_id: attempt.attempt_id } });
         let correctAnswersCount = 0;
 
         for (const answer of answers) {
@@ -84,6 +95,13 @@ exports.submitAttempt = async (req, res) => {
             if (correctOption) {
                 correctAnswersCount++;
             }
+
+            // Save the answer
+            await Answer.create({
+                attempt_id: attempt.attempt_id,
+                question_id: question_id,
+                student_answer: student_answer
+            });
         }
 
         const totalQuestions = answers.length;
@@ -102,8 +120,6 @@ exports.submitAttempt = async (req, res) => {
         });
     }
 };
-
-
 
 // Retrieve all attempts for a user
 exports.findAllAttempts = (req, res) => {
@@ -135,6 +151,7 @@ exports.findAnswersForAttempt = (req, res) => {
         });
 };
 
+// Delete an attempt
 exports.deleteAttempt = (req, res) => {
     const id = req.params.id;
 
@@ -157,4 +174,4 @@ exports.deleteAttempt = (req, res) => {
                 message: "Could not delete Attempt with id=" + id
             });
         });
-}
+};
