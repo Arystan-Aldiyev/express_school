@@ -9,10 +9,10 @@ module.exports = {
     port: process.env.DB_PORT,
     ssl: process.env.DB_SSL === 'true', // Convert string to boolean
     dialectOptions: {
-        ssl: {
-            require: process.env.DB_SSL === 'true',
-            rejectUnauthorized: process.env.DB_SSL_REJECT_UNAUTHORIZED === 'true'
-        }
+        // ssl: {
+        //     require: process.env.DB_SSL === 'true',
+        //     rejectUnauthorized: process.env.DB_SSL_REJECT_UNAUTHORIZED === 'true'
+        // }
     },
     pool: {
         max: 5,
