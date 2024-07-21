@@ -10,14 +10,14 @@ const verifyToken = (req, res, next) => {
     let token = req.headers["authorization"];
 
     if (!token) {
-        return res.status(403).send({ message: "No token provided!" });
+        return res.status(403).send({message: "No token provided!"});
     }
 
     token = token.split(" ")[1];  // Assume Bearer token
 
     jwt.verify(token, secretKey, (err, decoded) => {
         if (err) {
-            return res.status(401).send({ message: "Unauthorized!" });
+            return res.status(401).send({message: "Unauthorized!"});
         }
 
         req.userId = decoded.user_id;  // Add user id to request
@@ -30,7 +30,7 @@ const verifyIsAdmin = (req, res, next) => {
     if (req.userRole === 'admin') {
         next();
     } else {
-        res.status(403).send({ message: "Require Admin Role!" });
+        res.status(403).send({message: "Require Admin Role!"});
     }
 };
 
@@ -38,7 +38,7 @@ const verifyIsTeacher = (req, res, next) => {
     if (req.userRole === 'teacher') {
         next();
     } else {
-        res.status(403).send({ message: "Require Teacher Role!" });
+        res.status(403).send({message: "Require Teacher Role!"});
     }
 };
 
@@ -46,7 +46,7 @@ const verifyIsStudent = (req, res, next) => {
     if (req.userRole === 'student') {
         next();
     } else {
-        res.status(403).send({ message: "Require Student Role!" });
+        res.status(403).send({message: "Require Student Role!"});
     }
 };
 
@@ -80,7 +80,6 @@ const verifyIsGroupMember = (req, res, next) => {
         return;
     });
 }
-
 
 
 module.exports = {
