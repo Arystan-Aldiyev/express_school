@@ -110,6 +110,33 @@ router.post('/answerOptions/bulk', [verifyToken, verifyIsAdmin || verifyIsTeache
 
 /**
  * @swagger
+ * /api/questions/{question_id}/answerOptions/admins:
+ *   get:
+ *     summary: Retrieve all answer options for a question with answers (admins and teachers)
+ *     tags: [AnswerOptions]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: question_id
+ *         schema:
+ *           type: integer
+ *         required: true
+ *         description: The question ID
+ *     responses:
+ *       200:
+ *         description: A list of answer options
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: array
+ *               items:
+ *                 $ref: '#/components/schemas/AnswerOptionResponse'
+ */
+router.get('/questions/:question_id/answerOptions/admins', [verifyToken, verifyIsAdmin || verifyIsTeacher], answerOptionController.findAllAnswerOptions);
+
+/**
+ * @swagger
  * /api/questions/{question_id}/answerOptions:
  *   get:
  *     summary: Retrieve all answer options for a question
@@ -133,7 +160,7 @@ router.post('/answerOptions/bulk', [verifyToken, verifyIsAdmin || verifyIsTeache
  *               items:
  *                 $ref: '#/components/schemas/AnswerOptionResponse'
  */
-router.get('/questions/:question_id/answerOptions', [verifyToken, verifyIsAdmin || verifyIsTeacher], answerOptionController.findAllAnswerOptions);
+router.get('/questions/:question_id/answerOptions', [verifyToken], answerOptionController.findAllAnswerOptions);
 
 /**
  * @swagger
