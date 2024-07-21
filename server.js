@@ -13,15 +13,16 @@ const swaggerSpec = require('./config/swaggerConfig');
 
 const app = express();
 const server = http.createServer(app);
+
 const io = socketIo(server, {
     cors: {
-        origin: ["http://localhost:8000", "http://localhost:63342"],
+        origin: process.env.CORS_ORIGINS ? process.env.CORS_ORIGINS.split(',') : ['http://localhost:3000'],
         methods: ["GET", "POST", "DELETE"]
     }
 });
 
 const corsOptions = {
-    origin: ['http://localhost:8000', 'http://localhost:63342'],
+    origin: process.env.CORS_ORIGINS ? process.env.CORS_ORIGINS.split(',') : ['http://localhost:3000'],
     credentials: true
 };
 
