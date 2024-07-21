@@ -133,7 +133,7 @@ router.post('/answerOptions/bulk', [verifyToken, verifyIsAdmin || verifyIsTeache
  *               items:
  *                 $ref: '#/components/schemas/AnswerOptionResponse'
  */
-router.get('/questions/:question_id/answerOptions/admins', [verifyToken, verifyIsAdmin || verifyIsTeacher], answerOptionController.findAllAnswerOptions);
+router.get('/questions/:question_id/answerOptions/admins', [verifyToken, verifyIsAdmin || verifyIsTeacher], answerOptionController.findAllAnswerOptionsForAdmin);
 
 /**
  * @swagger
