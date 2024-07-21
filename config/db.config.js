@@ -1,3 +1,4 @@
+const {config} = require("dotenv");
 require('dotenv').config();
 
 module.exports = {
@@ -21,3 +22,4 @@ module.exports = {
         idle: 10000
     }
 };
+
