@@ -157,7 +157,7 @@ router.get('/tests', [verifyToken, verifyIsAdmin || verifyIsTeacher], testContro
  *       404:
  *         description: Test not found
  */
-router.get('/tests/:id', [verifyToken, verifyIsAdmin || verifyIsTeacher], testController.findOneTest);
+router.get('/tests/:id', [verifyToken], testController.findOneTest);
 
 /**
  * @swagger
@@ -187,10 +187,10 @@ router.get('/tests/:id', [verifyToken, verifyIsAdmin || verifyIsTeacher], testCo
  *               answers:
  *                 type: object
  *                 additionalProperties:
- *                   type: string
+ *                   type: integer
  *                 example:
- *                   "1": "Option A"
- *                   "2": "Option D"
+ *                   "1": 3
+ *                   "2": 7
  *               startTime:
  *                 type: string
  *                 format: date-time
