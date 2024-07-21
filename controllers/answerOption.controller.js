@@ -40,7 +40,7 @@ exports.createAnswerOptionsBulk = (req, res) => {
         is_correct: option.is_correct || false
     }));
 
-    AnswerOption.bulkCreate(answerOptions, { returning: true })
+    AnswerOption.bulkCreate(answerOptions, {returning: true})
         .then(data => {
             res.status(201).send(data);
         })
@@ -51,13 +51,32 @@ exports.createAnswerOptionsBulk = (req, res) => {
         });
 };
 
-// Retrieve all AnswerOptions for a question
-exports.findAllAnswerOptions = (req, res) => {
-    const question_id = req.params.question_id;
+exports.findAllAnswerOptionsForAdmin = (req, res) => {
+    const {question_id} = req.params;
 
-    AnswerOption.findAll({ where: { question_id: question_id } })
+    AnswerOption.findAll({where: {question_id}})
         .then(data => {
             res.send(data);
+        })
+        .catch(err => {
+            res.status(500).send({
+                message: err.message || "Some error occurred while retrieving answer options."
+            });
+        });
+};
+
+// Retrieve all AnswerOptions for a question
+exports.findAllAnswerOptions = (req, res) => {
+    const {question_id} = req.params;
+
+    AnswerOption.findAll({where: {question_id}})
+        .then(data => {
+            const filteredData = data.map(option => ({
+                option_id: option.option_id,
+                question_id: option.question_id,
+                option_text: option.option_text
+            }));
+            res.send(filteredData);
         })
         .catch(err => {
             res.status(500).send({
@@ -92,7 +111,7 @@ exports.updateAnswerOption = (req, res) => {
     const id = req.params.id;
 
     AnswerOption.update(req.body, {
-        where: { option_id: id }
+        where: {option_id: id}
     })
         .then(num => {
             if (num == 1) {
@@ -117,7 +136,7 @@ exports.deleteAnswerOption = (req, res) => {
     const id = req.params.id;
 
     AnswerOption.destroy({
-        where: { option_id: id }
+        where: {option_id: id}
     })
         .then(num => {
             if (num == 1) {
@@ -142,7 +161,7 @@ exports.deleteAllAnswerOptions = (req, res) => {
     const question_id = req.params.question_id;
 
     AnswerOption.destroy({
-        where: { question_id: question_id }
+        where: {question_id: question_id}
     })
         .then(nums => {
             res.send({
