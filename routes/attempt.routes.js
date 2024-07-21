@@ -5,9 +5,9 @@ const attemptController = require('../controllers/attempt.controller');
 
 /**
  * @swagger
- * /api/users/{user_id}/attempts:
+ * /api/users/{user_id}/attempts/{test_id}:
  *   get:
- *     summary: Retrieve all attempts for a user
+ *     summary: Retrieve all attempts for a user and test
  *     tags: [Attempts]
  *     security:
  *       - bearerAuth: []
@@ -18,6 +18,12 @@ const attemptController = require('../controllers/attempt.controller');
  *           type: integer
  *         required: true
  *         description: The user ID
+ *       - in: path
+ *         name: test_id
+ *         schema:
+ *           type: integer
+ *         required: true
+ *         description: The test ID
  *     responses:
  *       200:
  *         description: A list of attempts
@@ -26,13 +32,59 @@ const attemptController = require('../controllers/attempt.controller');
  *             schema:
  *               type: array
  *               items:
- *                 $ref: '#/components/schemas/Attempt'
+ *                 type: object
+ *                 properties:
+ *                   id:
+ *                     type: integer
+ *                   user_id:
+ *                     type: integer
+ *                   test_id:
+ *                     type: integer
+ *                   score:
+ *                     type: number
+ *                     format: float
+ *                   createdAt:
+ *                     type: string
+ *                     format: date-time
+ *                   updatedAt:
+ *                     type: string
+ *                     format: date-time
+ *       401:
+ *         description: Unauthorized
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 message:
+ *                   type: string
+ *                   example: Unauthorized
+ *       404:
+ *         description: Not Found
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 message:
+ *                   type: string
+ *                   example: Attempts not found
+ *       500:
+ *         description: Internal Server Error
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 message:
+ *                   type: string
+ *                   example: Some error occurred while retrieving attempts.
  */
-router.get('/users/:user_id/attempts', [verifyToken], attemptController.findAllAttempts);
+router.get('/users/:user_id/attempts/:test_id', [verifyToken], attemptController.findAllAttempts);
 
 /**
  * @swagger
- * /api/attempts/{attempt_id}/answers:
+ * /api/attempts/{user_id}/answers/{attempt_id}:
  *   get:
  *     summary: Retrieve all answers for an attempt
  *     tags: [Attempts]
@@ -45,6 +97,12 @@ router.get('/users/:user_id/attempts', [verifyToken], attemptController.findAllA
  *           type: integer
  *         required: true
  *         description: The attempt ID
+ *       - in: path
+ *         name: user_id
+ *         schema:
+ *           type: integer
+ *         required: true
+ *         description: The user ID
  *     responses:
  *       200:
  *         description: A list of answers
@@ -75,7 +133,7 @@ router.get('/users/:user_id/attempts', [verifyToken], attemptController.findAllA
  *                   type: string
  *                   example: "Some error occurred while retrieving answers."
  */
-router.get('/attempts/:attempt_id/answers', [verifyToken], attemptController.findAnswersForAttempt);
+router.get('/attempts/:user_id/answers/:attempt_id', [verifyToken], attemptController.findAnswersForAttempt);
 
 /**
  * @swagger
