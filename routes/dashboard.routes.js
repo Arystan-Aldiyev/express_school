@@ -1,11 +1,9 @@
 const express = require('express');
 const router = express.Router();
-const multer = require('multer');
-const { verifyToken, verifyIsAdmin } = require('../middleware/authJwt');
+const {verifyToken, verifyIsAdmin} = require('../middleware/authJwt');
 const dashboardController = require('../controllers/dashboard.controller');
+const {upload} = require("../services/amazon.s3.service");
 
-// Configure multer for memory storage
-const upload = multer({ storage: multer.memoryStorage() });
 
 /**
  * @swagger
@@ -15,10 +13,10 @@ const upload = multer({ storage: multer.memoryStorage() });
  *       type: http
  *       scheme: bearer
  *       bearerFormat: JWT
- * 
+ *
  * security:
  *   - bearerAuth: []
- * 
+ *
  * /api/dashboard/announcements:
  *   post:
  *     summary: Create a new announcement
@@ -175,7 +173,6 @@ router.delete(
 );
 
 // Routes for countdowns
-
 /**
  * @swagger
  * /api/dashboard/countdowns:
