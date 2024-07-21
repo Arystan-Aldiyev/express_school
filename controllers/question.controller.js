@@ -1,17 +1,30 @@
-const fs = require('fs');
 const path = require('path');
 const db = require("../models");
+const {v4: uuidv4} = require("uuid");
+const {awsBucketName} = require("../config/aws.config");
+const {s3} = require("../services/amazon.s3.service");
 const Question = db.question;
 
-const questionUploadsDir = path.join('/var/data', 'uploads', 'questions');
 
-exports.createQuestion = (req, res) => {
+exports.createQuestion = async (req, res) => {
     let imagePath = null;
+
     if (req.file) {
-        const filename = `${Date.now()}-${req.file.originalname}`;
-        const filepath = path.join(questionUploadsDir, filename);
-        fs.writeFileSync(filepath, req.file.buffer);
-        imagePath = `/uploads/questions/${filename}`;
+        const originalName = path.parse(req.file.originalname).name;
+        const extension = path.extname(req.file.originalname);
+        const truncatedName = originalName.length > 20 ? originalName.substring(0, 20) : originalName;
+        const shortUuid = uuidv4().split('-')[0]; // Shorter UUID
+        const fileName = `${truncatedName}-${shortUuid}${extension}`;
+
+        const params = {
+            Bucket: awsBucketName,
+            Key: `questions/${fileName}`,
+            Body: req.file.buffer,
+            ContentType: req.file.mimetype
+        };
+
+        const data = await s3.upload(params).promise();
+        imagePath = data.Location;
     }
 
     Question.create({
@@ -22,7 +35,7 @@ exports.createQuestion = (req, res) => {
     }).then(question => {
         res.status(201).send(question);
     }).catch(err => {
-        res.status(500).send({ message: err.message });
+        res.status(500).send({message: err.message});
     });
 };
 
@@ -32,7 +45,7 @@ exports.findAllQuestions = async (req, res) => {
         const questions = await Question.findAll();
         res.status(200).send(questions);
     } catch (err) {
-        res.status(500).send({ message: err.message });
+        res.status(500).send({message: err.message});
     }
 };
 
@@ -58,111 +71,149 @@ exports.findOneQuestion = (req, res) => {
 };
 
 // Full update a question by ID (PUT)
-exports.updateQuestion = (req, res) => {
+exports.updateQuestion = async (req, res) => {
     const id = req.params.id;
 
-    Question.findByPk(id)
-        .then(question => {
-            if (!question) {
-                return res.status(404).send({
-                    message: `Cannot update Question with id=${id}. Maybe Question was not found!`
-                });
-            }
+    try {
+        const question = await Question.findByPk(id);
 
-            let imagePath = null;
-            if (req.file) {
-                if (question.image) {
-                    fs.unlinkSync(path.join(questionUploadsDir, path.basename(question.image)));
-                }
-                const filename = `${Date.now()}-${req.file.originalname}`;
-                const filepath = path.join(questionUploadsDir, filename);
-                fs.writeFileSync(filepath, req.file.buffer);
-                imagePath = `/uploads/questions/${filename}`;
-            }
-
-            return Question.update({
-                test_id: req.body.test_id,
-                question_text: req.body.question_text,
-                hint: req.body.hint,
-                image: imagePath // Will be null if no new image is uploaded
-            }, {
-                where: { question_id: id }
+        if (!question) {
+            return res.status(404).send({
+                message: `Cannot update Question with id=${id}. Maybe Question was not found!`
             });
-        })
-        .then(num => {
-            if (num == 1) {
-                res.send({ message: "Question was updated successfully." });
-            } else {
-                res.send({ message: `Cannot update Question with id=${id}. Maybe Question was not found or req.body is empty!` });
+        }
+
+        let imagePath = null;
+        if (req.file) {
+            if (question.image) {
+                const oldImageKey = question.image.split('/').pop();
+                await s3.deleteObject({
+                    Bucket: awsBucketName,
+                    Key: `questions/${oldImageKey}`
+                }).promise();
             }
-        })
-        .catch(err => {
-            res.status(500).send({ message: err.message });
+
+            const originalName = path.parse(req.file.originalname).name;
+            const extension = path.extname(req.file.originalname);
+            const truncatedName = originalName.length > 20 ? originalName.substring(0, 20) : originalName;
+            const shortUuid = uuidv4().split('-')[0]; // Shorter UUID
+            const fileName = `${truncatedName}-${shortUuid}${extension}`;
+
+            const params = {
+                Bucket: awsBucketName,
+                Key: `questions/${fileName}`,
+                Body: req.file.buffer,
+                ContentType: req.file.mimetype
+            };
+
+            const data = await s3.upload(params).promise();
+            imagePath = data.Location;
+        }
+
+        const [num] = await Question.update({
+            test_id: req.body.test_id,
+            question_text: req.body.question_text,
+            hint: req.body.hint,
+            image: imagePath
+        }, {
+            where: {question_id: id}
         });
+
+        if (num == 1) {
+            res.send({message: "Question was updated successfully."});
+        } else {
+            res.send({message: `Cannot update Question with id=${id}. Maybe Question was not found or req.body is empty!`});
+        }
+    } catch (err) {
+        res.status(500).send({message: err.message});
+    }
 };
 
 // Partial update a question by ID (PATCH)
-exports.patchQuestion = (req, res) => {
+exports.patchQuestion = async (req, res) => {
     const id = req.params.id;
 
-    Question.findByPk(id)
-        .then(question => {
-            if (!question) {
-                return res.status(404).send({
-                    message: `Cannot update Question with id=${id}. Maybe Question was not found!`
-                });
-            }
+    try {
+        const question = await Question.findByPk(id);
 
-            let updateData = req.body;
-
-            if (req.file) {
-                if (question.image) {
-                    fs.unlinkSync(path.join(questionUploadsDir, path.basename(question.image)));
-                }
-                const filename = `${Date.now()}-${req.file.originalname}`;
-                const filepath = path.join(questionUploadsDir, filename);
-                fs.writeFileSync(filepath, req.file.buffer);
-                updateData.image = `/uploads/questions/${filename}`;
-            }
-
-            return Question.update(updateData, {
-                where: { question_id: id }
+        if (!question) {
+            return res.status(404).send({
+                message: `Cannot update Question with id=${id}. Maybe Question was not found!`
             });
-        })
-        .then(num => {
-            if (num == 1) {
-                res.send({ message: "Question was updated successfully." });
-            } else {
-                res.send({ message: `Cannot update Question with id=${id}. Maybe Question was not found or req.body is empty!` });
-            }
-        })
-        .catch(err => {
-            res.status(500).send({ message: err.message });
-        });
-};
+        }
 
-// Delete a question by ID
-exports.deleteQuestion = (req, res) => {
-    Question.findOne({
-        where: { question_id: req.params.id }
-    }).then(question => {
-        if (question) {
+        let updateData = req.body;
+
+        if (req.file) {
             if (question.image) {
-                fs.unlinkSync(path.join(questionUploadsDir, path.basename(question.image))); // Remove the file from the file system
+                const oldImageKey = question.image.split('/').pop();
+                await s3.deleteObject({
+                    Bucket: awsBucketName,
+                    Key: `questions/${oldImageKey}`
+                }).promise();
             }
-            return Question.destroy({
-                where: { question_id: req.params.id }
-            });
-        } else {
-            throw new Error(`Question with id=${req.params.id} not found!`);
+
+            const originalName = path.parse(req.file.originalname).name;
+            const extension = path.extname(req.file.originalname);
+            const truncatedName = originalName.length > 20 ? originalName.substring(0, 20) : originalName;
+            const shortUuid = uuidv4().split('-')[0];
+            const fileName = `${truncatedName}-${shortUuid}${extension}`;
+
+            const params = {
+                Bucket: awsBucketName,
+                Key: `questions/${fileName}`,
+                Body: req.file.buffer,
+                ContentType: req.file.mimetype
+            };
+
+            const data = await s3.upload(params).promise();
+            updateData.image = data.Location;
         }
-    }).then(num => {
+
+        const [num] = await Question.update(updateData, {
+            where: {question_id: id}
+        });
+
         if (num == 1) {
-            res.send({ message: "Question was deleted successfully!" });
+            res.send({message: "Question was updated successfully."});
         } else {
-            res.send({ message: `Cannot delete Question with id=${req.params.id}. Maybe Question was not found!` });
+            res.send({message: `Cannot update Question with id=${id}. Maybe Question was not found or req.body is empty!`});
         }
-    }).catch(err => {
-        res.status(500).send({ message: err.message });
-    });
+    } catch (err) {
+        res.status(500).send({message: err.message});
+    }
+};
+// Delete a question by ID
+exports.deleteQuestion = async (req, res) => {
+    try {
+        const question = await Question.findOne({
+            where: {question_id: req.params.id}
+        });
+
+        if (!question) {
+            return res.status(404).send({
+                message: `Cannot delete Question with id=${req.params.id}. Maybe Question was not found!`
+            });
+        }
+
+        if (question.image) {
+            const oldImageKey = question.image.split('/').pop();
+            await s3.deleteObject({
+                Bucket: awsBucketName,
+                Key: `questions/${oldImageKey}`
+            }).promise();
+        }
+
+        const num = await Question.destroy({
+            where: {question_id: req.params.id}
+        });
+
+        if (num == 1) {
+            res.send({message: "Question was deleted successfully!"});
+        } else {
+            res.send({message: `Cannot delete Question with id=${req.params.id}. Maybe Question was not found!`});
+        }
+    } catch (err) {
+        res.status(500).send({message: err.message});
+    }
 };
