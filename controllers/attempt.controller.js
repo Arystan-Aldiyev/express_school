@@ -3,12 +3,24 @@ const Attempt = db.attempt;
 const Answer = db.answer;
 const Test = db.test;
 const Question = db.question;
+const AnswerOption = db.answerOption;
 
 // Retrieve all attempts for a user
 exports.findAllAttempts = (req, res) => {
     const user_id = req.params.user_id;
+    const test_id = req.params.test_id;
+    const userRole = req.userRole;
 
-    Attempt.findAll({where: {user_id: user_id}})
+    if (userRole !== 'admin' && userRole !== 'teacher' && req.userId !== user_id) {
+        return res.status(409).json("You don't have access to these attempts");
+    }
+
+    Attempt.findAll({
+        where: {
+            user_id: user_id,
+            test_id: test_id
+        }
+    })
         .then(data => {
             res.send(data);
         })
@@ -24,41 +36,32 @@ exports.findAnswersForAttempt = async (req, res) => {
     const attempt_id = req.params.attempt_id;
     const userId = req.userId;
     const userRole = req.userRole;
+
+    if (userRole !== 'admin' && userRole !== 'teacher' && userId !== req.userId) {
+        return res.status(409).json("You don't have access to this attempt");
+    }
+
     try {
-        let attempt;
-        if (userRole === 'admin' || userRole === 'teacher') {
-            attempt = await Attempt.findOne({
-                where: {attempt_id: attempt_id},
+        let attempt = await Attempt.findOne({
+            where: {attempt_id: attempt_id, user_id: userId},
+            include: [{
+                model: Test,
+                as: 'Test',
                 include: [{
-                    model: Test,
-                    as: 'Test',
+                    model: Question,
+                    as: 'questions',
                     include: [{
-                        model: Question,
-                        as: 'questions',
-                        include: [{
-                            model: Answer,
-                            as: 'Answers'
-                        }]
+                        model: Answer,
+                        as: 'Answers',
+                        where: {attempt_id: attempt_id},
+                        required: false
+                    }, {
+                        model: AnswerOption,
+                        as: 'answerOptions'
                     }]
                 }]
-            });
-        } else {
-            attempt = await Attempt.findOne({
-                where: {attempt_id: attempt_id, user_id: userId},
-                include: [{
-                    model: Test,
-                    as: 'Test',
-                    include: [{
-                        model: Question,
-                        as: 'questions',
-                        include: [{
-                            model: Answer,
-                            as: 'Answers'
-                        }]
-                    }]
-                }]
-            });
-        }
+            }]
+        });
 
         if (!attempt) {
             console.log(`No attempt found for attempt_id ${attempt_id} and user_id ${userId}`);
@@ -68,13 +71,49 @@ exports.findAnswersForAttempt = async (req, res) => {
         }
 
         if (!attempt.Test || !attempt.Test.questions) {
-            console.log(`No questions found for test_id ${attempt.test_id}`);
+            console.log(`No questions found for test_id ${attempt.Test.test_id}`);
             return res.status(404).send({
                 message: "No questions found for the test associated with this attempt."
             });
         }
 
-        res.status(200).send(attempt);
+        const transformedData = {
+            attempt: {
+                attempt_id: attempt.attempt_id,
+                test_id: attempt.test_id,
+                user_id: attempt.user_id,
+                start_time: attempt.start_time,
+                end_time: attempt.end_time,
+                score: attempt.score,
+                Test: {
+                    test_id: attempt.Test.test_id,
+                    group_id: attempt.Test.group_id,
+                    name: attempt.Test.name,
+                    time_open: attempt.Test.time_open,
+                    duration_minutes: attempt.Test.duration_minutes,
+                    max_attempts: attempt.Test.max_attempts,
+                    questions: attempt.Test.questions.map(question => {
+                        const userAnswer = question.Answers.find(answer => answer.question_id === question.question_id);
+                        return {
+                            question_id: question.question_id,
+                            question_text: question.question_text,
+                            hint: question.hint,
+                            image: question.image,
+                            answerOptions: question.answerOptions ? question.answerOptions.map(option => {
+                                return {
+                                    option_id: option.option_id,
+                                    option_text: option.option_text,
+                                    is_correct: option.is_correct,
+                                    selected: userAnswer ? userAnswer.student_answer === option.option_text : false
+                                };
+                            }) : []
+                        };
+                    })
+                }
+            }
+        };
+
+        res.status(200).send(transformedData);
     } catch (err) {
         console.error('Error while retrieving answers:', err);
         res.status(500).send({
