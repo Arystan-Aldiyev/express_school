@@ -1,70 +1,88 @@
-const express = require('express');
-const cors = require('cors');
 require('dotenv').config();
-const { sequelize } = require('./models');
+
+const cors = require('cors');
+const express = require('express');
+const http = require('http');
+const socketIo = require('socket.io');
+
+const {sequelize} = require('./models');
 const bodyParser = require('body-parser');
-const authRoutes = require('./routes/auth.routes');
-const dashboardRoutes = require('./routes/dashboard.routes');
-const userRoutes = require('./routes/user.routes');
+const globalRouter = require('./global.router');
 const swaggerUi = require('swagger-ui-express');
 const swaggerSpec = require('./config/swaggerConfig');
-const groupRoutes = require('./routes/group.routes');
-const testRoutes = require('./routes/test.routes');
-const groupMembershipRoutes = require('./routes/groupMembership.routes');
-const questionRoutes = require('./routes/question.routes');
-const answerOptionRoutes = require('./routes/answerOption.routes');
-const attemptRoutes = require('./routes/attempt.routes');
-const answerRoutes = require('./routes/answer.routes');
-
-
-const { verifyToken } = require('./middleware/authJwt');
-
-const fs = require('fs');
-const path = require('path');
 
 const app = express();
+const server = http.createServer(app);
+const io = socketIo(server, {
+    cors: {
+        origin: ["http://localhost:8000", "http://localhost:63342"],
+        methods: ["GET", "POST", "DELETE"]
+    }
+});
 
 const corsOptions = {
-    origin: 'http://localhost:8000'
+    origin: ['http://localhost:8000', 'http://localhost:63342'],
+    credentials: true
 };
 
 app.use(cors(corsOptions));
 app.use(express.json());
-app.use(express.urlencoded({ extended: true }));
+app.use(express.urlencoded({extended: true}));
 app.use(bodyParser.json());
 
-app.use('/api/auth', authRoutes);
-app.use('/api/dashboard', dashboardRoutes);
-app.use('/api/user', userRoutes);
-app.use('/api', groupRoutes);
-app.use('/api', groupMembershipRoutes);
-app.use('/api', testRoutes);
-app.use('/api', questionRoutes);
-app.use('/api', answerOptionRoutes);
-app.use('/api', attemptRoutes);
-app.use('/api', answerRoutes);
+app.use('/api', globalRouter);
 
 app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerSpec));
 
-const uploadsDir = path.join('/var/data', 'uploads', 'dashboards');
-if (!fs.existsSync(uploadsDir)) {
-    fs.mkdirSync(uploadsDir, { recursive: true });
-}
-
-const questionUploadsDir = path.join('/var/data', 'uploads', 'questions');
-if (!fs.existsSync(questionUploadsDir)) {
-    fs.mkdirSync(questionUploadsDir, { recursive: true });
-}
-
-
-app.use('/uploads/questions', express.static(questionUploadsDir));
-app.use('/uploads/dashboards', express.static(uploadsDir));
+app.use((req, res, next) => {
+    req.io = io;
+    console.log('Socket.io instance attached to req');
+    next();
+});
 
 const PORT = process.env.PORT || 3000;
 
+io.on('connection', (socket) => {
+    console.log('A user connected');
+
+    socket.on('disconnect', () => {
+        console.log('User disconnected');
+    });
+
+    socket.on('login', (userId) => {
+        socket.userId = userId;
+        console.log(`User ${userId} connected`);
+    });
+
+    socket.on('notification', (userId, message) => {
+        try {
+            io.to(userId.toString()).emit('notification', message);
+        } catch (error) {
+            console.error('Error sending notification:', error);
+        }
+    });
+
+    socket.on('markAsRead', async (data) => {
+        const {userId, notificationId} = data;
+        try {
+            const notification = await Notification.findOne({
+                where: {notification_id: notificationId, user_id: userId}
+            });
+            if (notification) {
+                await notification.update({is_read: true});
+                io.to(notificationId.toString()).emit('notificationRead', notificationId);
+            } else {
+                console.error(`Notification ${notificationId} not found for user ${userId}`);
+            }
+        } catch (error) {
+            console.error('Error marking notification as read:', error);
+        }
+    });
+});
+
 sequelize.sync()
     .then(() => {
-        app.listen(PORT, () => {
+        server.listen(PORT, () => {
             console.log(`Server is running on port ${PORT}`);
         });
     })
