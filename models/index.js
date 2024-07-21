@@ -58,7 +58,7 @@ db.group.hasMany(db.test, {foreignKey: 'group_id'});
 db.question.belongsTo(db.test, {foreignKey: 'test_id', as: 'Test'});
 db.test.hasMany(db.question, {foreignKey: 'test_id', as: 'questions'});
 
-db.answerOption.belongsTo(db.question, {foreignKey: 'question_id', as: 'questions'});
+db.answerOption.belongsTo(db.question, {foreignKey: 'question_id', as: 'Question'});
 db.question.hasMany(db.answerOption, {foreignKey: 'question_id', as: 'answerOptions'});
 
 db.attempt.hasMany(db.answer, {foreignKey: 'attempt_id'});
