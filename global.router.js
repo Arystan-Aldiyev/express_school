@@ -8,7 +8,6 @@ const groupMembershipRoutes = require('./routes/groupMembership.routes');
 const questionRoutes = require('./routes/question.routes');
 const answerOptionRoutes = require('./routes/answerOption.routes');
 const attemptRoutes = require('./routes/attempt.routes');
-const answerRoutes = require('./routes/answer.routes');
 const notificationRoutes = require('./routes/notification.routes');
 const calendarRoutes = require('./routes/calendar.routes');
 
@@ -23,7 +22,6 @@ router.use('/', testRoutes);
 router.use('/', questionRoutes);
 router.use('/', answerOptionRoutes);
 router.use('/', attemptRoutes);
-router.use('/', answerRoutes);
 router.use('/', notificationRoutes)
 router.use('/', calendarRoutes)
 module.exports = router;
