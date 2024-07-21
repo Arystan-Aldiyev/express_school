@@ -1,6 +1,6 @@
 const express = require('express');
 const router = express.Router();
-const { verifyToken, verifyIsAdmin, verifyIsTeacher } = require('../middleware/authJwt');
+const {verifyToken, verifyIsAdmin, verifyIsTeacher} = require('../middleware/authJwt');
 const testController = require('../controllers/test.controller');
 /**
  * @swagger
@@ -51,7 +51,7 @@ const testController = require('../controllers/test.controller');
  *         test_id: 1
  *         question_text: "What is 2+2?"
  *         hint: "Think about basic addition."
- *         answerOptions: 
+ *         answerOptions:
  *           - option_id: 1
  *             question_id: 1
  *             option_text: "Option A"
@@ -103,10 +103,10 @@ const testController = require('../controllers/test.controller');
  *                 question_id: 1
  *                 option_text: "Option B"
  *                 is_correct: false
- * 
+ *
  * security:
  *   - bearerAuth: []
- * 
+ *
  * tags:
  *   name: Tests
  *   description: API for managing tests
@@ -159,6 +159,83 @@ router.get('/tests', [verifyToken, verifyIsAdmin || verifyIsTeacher], testContro
  */
 router.get('/tests/:id', [verifyToken, verifyIsAdmin || verifyIsTeacher], testController.findOneTest);
 
+/**
+ * @swagger
+ * /api/tests/{id}/submit:
+ *   post:
+ *     summary: Submit a test
+ *     tags: [Tests]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         schema:
+ *           type: string
+ *         required: true
+ *         description: The test ID
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required:
+ *               - answers
+ *               - startTime
+ *             properties:
+ *               answers:
+ *                 type: object
+ *                 additionalProperties:
+ *                   type: string
+ *                 example:
+ *                   "1": "Option A"
+ *                   "2": "Option D"
+ *               startTime:
+ *                 type: string
+ *                 format: date-time
+ *                 example: "2024-07-19T12:00:00Z"
+ *     responses:
+ *       200:
+ *         description: Successfully submitted the test
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 score:
+ *                   type: integer
+ *                   description: The calculated score
+ *                   example: 5
+ *                 timeTaken:
+ *                   type: number
+ *                   format: float
+ *                   description: Time taken to complete the test in seconds
+ *                   example: 1800
+ *       404:
+ *         description: Test not found
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 message:
+ *                   type: string
+ *                   example: Test not found
+ *       500:
+ *         description: Server error
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 message:
+ *                   type: string
+ *                   example: Server error
+ *                 error:
+ *                   type: string
+ */
+router.post('/tests/:id/submit', [verifyToken], testController.submitTest);
 
 /**
  * @swagger
