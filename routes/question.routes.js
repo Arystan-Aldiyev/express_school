@@ -1,11 +1,9 @@
 const express = require('express');
 const router = express.Router();
-const { verifyToken, verifyIsAdmin, verifyIsTeacher } = require('../middleware/authJwt');
+const {verifyToken, verifyIsAdmin, verifyIsTeacher} = require('../middleware/authJwt');
 const questionController = require('../controllers/question.controller');
-const multer = require('multer');
+const {upload} = require("../services/amazon.s3.service");
 
-const storage = multer.memoryStorage();
-const upload = multer({ storage: storage });
 
 /**
  * @swagger
@@ -40,7 +38,7 @@ const upload = multer({ storage: storage });
  *         image: "https://your-cloud-storage-service.com/path-to-your-image.png"
  * security:
  *   - bearerAuth: []
- * 
+ *
  * tags:
  *   name: Questions
  *   description: API for managing questions
