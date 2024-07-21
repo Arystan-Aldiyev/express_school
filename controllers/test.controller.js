@@ -56,25 +56,37 @@ exports.findAllTest = (req, res) => {
 };
 
 // Find a single Test with an id
-exports.findOneTest = (req, res) => {
+exports.findOneTest = async (req, res) => {
     const id = req.params.id;
 
-    Test.findByPk(id)
-        .then(data => {
-            if (data) {
-                res.send(data);
-            } else {
-                res.status(404).send({
-                    message: `Cannot find Test with id=${id}.`
-                });
+    try {
+        const test = await Test.findByPk(id, {
+            include: {
+                model: Question,
+                as: 'questions',
+                include: {
+                    model: AnswerOption,
+                    as: 'answerOptions',
+                    attributes: ['option_id', 'question_id', 'option_text']
+                }
             }
-        })
-        .catch(err => {
-            res.status(500).send({
-                message: "Error retrieving Test with id=" + id
-            });
         });
+
+        if (test) {
+            res.send(test);
+        } else {
+            res.status(404).send({
+                message: `Cannot find Test with id=${id}.`
+            });
+        }
+    } catch (err) {
+        console.log(err)
+        res.status(500).send({
+            message: "Error retrieving Test with id=" + id
+        });
+    }
 };
+
 
 exports.findTestWithDetails = (req, res) => {
     const id = req.params.id;
@@ -136,17 +148,6 @@ exports.submitTest = async (req, res) => {
             return res.status(404).json({message: 'Test not found'});
         }
 
-        // const groupMembership = await GroupMembership.findOne({
-        //     where: {
-        //         group_id: test.group_id,
-        //         user_id: userId
-        //     }
-        // });
-        //
-        // if (!groupMembership) {
-        //     return res.status(403).json({message: 'User not a member of the test group'});
-        // }
-
         const attemptsCount = await Attempt.count({
             where: {
                 test_id: testId,
@@ -183,7 +184,8 @@ exports.submitTest = async (req, res) => {
             });
 
             const correctOption = question.answerOptions.find(option => option.is_correct);
-            if (userAnswer === correctOption.option_text) {
+            console.log(JSON.stringify(correctOption))
+            if (userAnswer === correctOption.option_id) {
                 score++;
             }
         }
