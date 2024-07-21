@@ -1,6 +1,6 @@
 const express = require('express');
 const router = express.Router();
-const { verifyToken, verifyIsAdmin, verifyIsTeacher } = require('../middleware/authJwt');
+const {verifyToken, verifyIsAdmin, verifyIsTeacher} = require('../middleware/authJwt');
 const answerOptionController = require('../controllers/answerOption.controller');
 
 /**
@@ -49,7 +49,7 @@ const answerOptionController = require('../controllers/answerOption.controller')
  *         $ref: '#/components/schemas/AnswerOptionResponse'
  * security:
  *   - bearerAuth: []
- * 
+ *
  * tags:
  *   name: AnswerOptions
  *   description: API for managing answer options
