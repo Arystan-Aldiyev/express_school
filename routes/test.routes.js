@@ -185,12 +185,21 @@ router.get('/tests/:id', [verifyToken], testController.findOneTest);
  *               - startTime
  *             properties:
  *               answers:
- *                 type: object
- *                 additionalProperties:
- *                   type: integer
+ *                 type: array
+ *                 items:
+ *                   type: object
+ *                   properties:
+ *                     question_id:
+ *                       type: integer
+ *                       description: The ID of the question
+ *                     answer:
+ *                       type: integer
+ *                       description: The selected answer ID
  *                 example:
- *                   "1": 3
- *                   "2": 7
+ *                   - question_id: 1
+ *                     answer: 3
+ *                   - question_id: 2
+ *                     answer: 7
  *               startTime:
  *                 type: string
  *                 format: date-time
@@ -212,6 +221,16 @@ router.get('/tests/:id', [verifyToken], testController.findOneTest);
  *                   format: float
  *                   description: Time taken to complete the test in seconds
  *                   example: 1800
+ *       403:
+ *         description: Maximum attempts reached
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 message:
+ *                   type: string
+ *                   example: Maximum attempts reached
  *       404:
  *         description: Test not found
  *         content:

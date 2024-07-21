@@ -125,11 +125,11 @@ exports.findTestWithDetails = (req, res) => {
 // Submit Test controller
 exports.submitTest = async (req, res) => {
     const testId = req.params.id;
-    const userId = req.userId
-    console.log(req.body)
+    const userId = req.userId;
     const {answers, startTime} = req.body;
 
     console.log(`Received startTime: ${startTime}`);
+    console.log(req.body);
 
     try {
         const test = await Test.findOne({
@@ -158,6 +158,7 @@ exports.submitTest = async (req, res) => {
         if (attemptsCount >= test.max_attempts) {
             return res.status(403).json({message: 'Maximum attempts reached'});
         }
+
         let score = 0;
         const endTime = new Date();
 
@@ -174,18 +175,24 @@ exports.submitTest = async (req, res) => {
             score: 0
         });
 
-        for (const question of test.questions) {
-            const userAnswer = answers[question.question_id];
+        for (const answer of answers) {
+            const questionId = answer.question_id;
+            const userAnswer = answer.answer;
+
+            const question = test.questions.find(q => q.question_id === questionId);
+            if (!question) {
+                continue;
+            }
+
             await Answer.create({
-                question_id: question.question_id,
+                question_id: questionId,
                 user_id: userId,
                 student_answer: userAnswer,
                 attempt_id: attempt.attempt_id
             });
 
             const correctOption = question.answerOptions.find(option => option.is_correct);
-            console.log(JSON.stringify(correctOption))
-            if (userAnswer === correctOption.option_id) {
+            if (correctOption && userAnswer === correctOption.option_id) {
                 score++;
             }
         }
@@ -201,6 +208,7 @@ exports.submitTest = async (req, res) => {
         res.status(500).json({message: 'Server error', error});
     }
 };
+
 
 // Update a Test by the id in the request
 exports.updateTest = (req, res) => {
