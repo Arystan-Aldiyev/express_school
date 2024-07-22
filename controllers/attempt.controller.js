@@ -62,7 +62,9 @@ exports.findAnswersForAttempt = async (req, res) => {
                 }]
             }]
         });
-        console.log(JSON.stringify(attempt))
+
+        console.log(JSON.stringify(attempt));
+
         if (!attempt) {
             console.log(`No attempt found for attempt_id ${attempt_id} and user_id ${userId}`);
             return res.status(404).send({
@@ -94,6 +96,7 @@ exports.findAnswersForAttempt = async (req, res) => {
                     max_attempts: attempt.Test.max_attempts,
                     questions: attempt.Test.questions.map(question => {
                         const userAnswer = question.Answers.find(answer => answer.question_id === question.question_id);
+                        console.log(JSON.stringify(userAnswer))
                         return {
                             question_id: question.question_id,
                             question_text: question.question_text,
@@ -104,7 +107,7 @@ exports.findAnswersForAttempt = async (req, res) => {
                                     option_id: option.option_id,
                                     option_text: option.option_text,
                                     is_correct: option.is_correct,
-                                    selected: userAnswer ? userAnswer.student_answer === option.option_text : false
+                                    selected: userAnswer ? parseInt(userAnswer.student_answer) === option.option_id : false
                                 };
                             }) : []
                         };
