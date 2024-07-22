@@ -84,10 +84,12 @@ exports.findTestWithDetails = (req, res) => {
             {
                 model: Question,
                 as: 'questions',
+                attributes: {exclude: ['explanation']},
                 include: [
                     {
                         model: AnswerOption,
-                        as: 'answerOptions'
+                        as: 'answerOptions',
+                        attributes: {exclude: ['is_correct']}
                     }
                 ]
             }
@@ -166,11 +168,12 @@ exports.submitTest = async (req, res) => {
         for (const answer of answers) {
             const questionId = answer.question_id;
             const userAnswer = answer.answer;
-
+            console.log(userAnswer)
             const question = test.questions.find(q => q.question_id === questionId);
             if (!question) {
                 continue;
             }
+            console.log(JSON.stringify(question, null, 2))
 
             await Answer.create({
                 question_id: questionId,
@@ -179,9 +182,9 @@ exports.submitTest = async (req, res) => {
                 attempt_id: attempt.attempt_id
             });
 
-            const correctOption = question.answerOptions.find(option => option.isCorrect);
-            console.log(`Question ID: ${questionId}, User Answer: ${userAnswer}, Correct Option: ${correctOption ? correctOption.id : 'None'}`);
-            if (correctOption && userAnswer === correctOption.id) {
+            const correctOption = question.answerOptions.find(option => option.is_correct);
+            console.log("AAAAAAAAAAAAAAAAAA", JSON.stringify(correctOption, null, 2))
+            if (correctOption && userAnswer === correctOption.option_id) {
                 score++;
                 console.log(`Correct answer for question ID: ${questionId}`);
             } else {
