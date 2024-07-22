@@ -4,7 +4,6 @@ const {verifyToken, verifyIsAdmin, verifyIsTeacher} = require('../middleware/aut
 const questionController = require('../controllers/question.controller');
 const {upload} = require("../services/amazon.s3.service");
 
-
 /**
  * @swagger
  * components:
@@ -31,11 +30,14 @@ const {upload} = require("../services/amazon.s3.service");
  *         image:
  *           type: string
  *           format: uri
+ *         explanation:
+ *           type: string
  *       example:
  *         test_id: 1
  *         question_text: "<p>If (a, b) is a solution to the following system of inequalities, which of the following represents the minimum value of b?</p><p><code>y &gt; 2(x-3) + 5</code><br><code>y &lt; x + 3</code></p>"
  *         hint: "Think about the intersection of the two inequalities."
  *         image: "https://your-cloud-storage-service.com/path-to-your-image.png"
+ *         explanation: "The solution involves finding the intersection of the given inequalities."
  * security:
  *   - bearerAuth: []
  *
@@ -115,6 +117,8 @@ router.get('/questions/:id', [verifyToken, verifyIsAdmin || verifyIsTeacher], qu
  *               image:
  *                 type: string
  *                 format: binary
+ *               explanation:
+ *                 type: string
  *     responses:
  *       201:
  *         description: Question created
@@ -156,6 +160,8 @@ router.post('/questions', [verifyToken, verifyIsAdmin || verifyIsTeacher], uploa
  *               image:
  *                 type: string
  *                 format: binary
+ *               explanation:
+ *                 type: string
  *     responses:
  *       200:
  *         description: Question updated successfully
@@ -199,6 +205,8 @@ router.put('/questions/:id', [verifyToken, verifyIsAdmin || verifyIsTeacher], up
  *               image:
  *                 type: string
  *                 format: binary
+ *               explanation:
+ *                 type: string
  *     responses:
  *       200:
  *         description: Question updated successfully
