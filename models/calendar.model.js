@@ -1,5 +1,6 @@
+// models/calendar.model.js
 module.exports = (sequelize, DataTypes) => {
-    return sequelize.define('Calendar', {
+    const Calendar = sequelize.define('Calendar', {
         schedule_id: {
             type: DataTypes.INTEGER,
             primaryKey: true,
@@ -33,4 +34,13 @@ module.exports = (sequelize, DataTypes) => {
         tableName: 'calendars',
         timestamps: false
     });
+
+    Calendar.associate = models => {
+        Calendar.belongsTo(models.Group, {
+            foreignKey: 'group_id',
+            as: 'group'
+        });
+    };
+
+    return Calendar;
 };
