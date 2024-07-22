@@ -10,6 +10,9 @@ const answerOptionRoutes = require('./routes/answerOption.routes');
 const attemptRoutes = require('./routes/attempt.routes');
 const notificationRoutes = require('./routes/notification.routes');
 const calendarRoutes = require('./routes/calendar.routes');
+const lessonRoutes = require('./routes/lesson.routes');
+const topicRoutes = require('./routes/topic.routes');
+const contentRoutes = require('./routes/content.routes');
 
 const router = express.Router();
 
@@ -24,4 +27,7 @@ router.use('/', answerOptionRoutes);
 router.use('/', attemptRoutes);
 router.use('/', notificationRoutes)
 router.use('/', calendarRoutes)
+router.use('/', lessonRoutes)
+router.use('/', topicRoutes)
+router.use('/', contentRoutes)
 module.exports = router;
