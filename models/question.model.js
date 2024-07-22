@@ -23,6 +23,10 @@ module.exports = (sequelize, DataTypes) => {
         image: {
             type: DataTypes.STRING,
             allowNull: true
+        },
+        explanation: {
+            type: DataTypes.STRING,
+            allowNull: true
         }
     }, {
         tableName: 'questions',
