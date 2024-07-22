@@ -34,7 +34,7 @@ exports.findAllAttempts = (req, res) => {
 // Retrieve all answers for an attempt
 exports.findAnswersForAttempt = async (req, res) => {
     const attempt_id = req.params.attempt_id;
-    const userId = req.userId;
+    const userId = req.params.user_id;
     const userRole = req.userRole;
 
     if (userRole !== 'admin' && userRole !== 'teacher' && userId !== req.userId) {
@@ -53,7 +53,7 @@ exports.findAnswersForAttempt = async (req, res) => {
                     include: [{
                         model: Answer,
                         as: 'Answers',
-                        where: {attempt_id: attempt_id},
+                        where: {attempt_id: attempt_id, user_id: userId},
                         required: false
                     }, {
                         model: AnswerOption,
@@ -62,7 +62,7 @@ exports.findAnswersForAttempt = async (req, res) => {
                 }]
             }]
         });
-
+        console.log(JSON.stringify(attempt))
         if (!attempt) {
             console.log(`No attempt found for attempt_id ${attempt_id} and user_id ${userId}`);
             return res.status(404).send({
