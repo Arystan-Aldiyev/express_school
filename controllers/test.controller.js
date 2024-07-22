@@ -60,18 +60,7 @@ exports.findOneTest = async (req, res) => {
     const id = req.params.id;
 
     try {
-        const test = await Test.findByPk(id, {
-            include: {
-                model: Question,
-                as: 'questions',
-                include: {
-                    model: AnswerOption,
-                    as: 'answerOptions',
-                    attributes: ['option_id', 'question_id', 'option_text']
-                }
-            }
-        });
-
+        const test = await Test.findByPk(id);
         if (test) {
             res.send(test);
         } else {
@@ -80,13 +69,12 @@ exports.findOneTest = async (req, res) => {
             });
         }
     } catch (err) {
-        console.log(err)
+        console.error(`Error retrieving Test with id=${id}:`, err);
         res.status(500).send({
-            message: "Error retrieving Test with id=" + id
+            message: `Error retrieving Test with id=${id}`
         });
     }
 };
-
 
 exports.findTestWithDetails = (req, res) => {
     const id = req.params.id;
@@ -191,9 +179,13 @@ exports.submitTest = async (req, res) => {
                 attempt_id: attempt.attempt_id
             });
 
-            const correctOption = question.answerOptions.find(option => option.is_correct);
-            if (correctOption && userAnswer === correctOption.option_id) {
+            const correctOption = question.answerOptions.find(option => option.isCorrect);
+            console.log(`Question ID: ${questionId}, User Answer: ${userAnswer}, Correct Option: ${correctOption ? correctOption.id : 'None'}`);
+            if (correctOption && userAnswer === correctOption.id) {
                 score++;
+                console.log(`Correct answer for question ID: ${questionId}`);
+            } else {
+                console.log(`Incorrect answer for question ID: ${questionId}`);
             }
         }
 
