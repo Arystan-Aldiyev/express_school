@@ -1,6 +1,6 @@
 const db = require("../models");
-const Topic = db.Topic;
-const Lesson = db.Lesson;
+const Topic = db.topic;
+const Lesson = db.lesson;
 
 exports.createTopic = async (req, res) => {
     try {
