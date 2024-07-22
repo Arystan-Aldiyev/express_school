@@ -26,9 +26,9 @@ module.exports = (sequelize, DataTypes) => {
     });
 
     Group.associate = models => {
-        Group.hasMany(models.Schedule, {
+        Group.hasMany(models.Calendar, {
             foreignKey: 'group_id',
-            as: 'schedules'
+            as: 'calendars'
         });
     };
 
