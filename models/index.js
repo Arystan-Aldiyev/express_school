@@ -42,10 +42,20 @@ db.message = require('./message.model.js')(sequelize, Sequelize);
 db.dashboardAnnouncement = require('./dashboardAnnouncement.model.js')(sequelize, Sequelize);
 db.dashboardCountdown = require('./dashboardCountdown.model.js')(sequelize, Sequelize);
 db.calendar = require('./calendar.model.js')(sequelize, Sequelize);
+db.lesson = require('./lesson.model')(sequelize, Sequelize);
+db.topic = require('./topic.model')(sequelize, Sequelize);
+db.content = require('./content.model')(sequelize, Sequelize);
 
 // Define associations
 db.group.belongsTo(db.user, {foreignKey: 'teacher_id', as: 'teacher'});
 db.user.hasMany(db.group, {foreignKey: 'teacher_id', as: 'groups'});
+
+
+db.lesson.hasMany(db.topic, {foreignKey: 'lesson_id'})
+db.topic.belongsTo(db.lesson, {foreignKey: 'lesson_id'})
+
+db.topic.hasMany(db.content, {foreignKey: 'topic_id'})
+db.content.belongsTo(db.topic, {foreignKey: 'topic_id'})
 
 db.groupMembership.belongsTo(db.group, {foreignKey: 'group_id'});
 db.groupMembership.belongsTo(db.user, {foreignKey: 'user_id'});
