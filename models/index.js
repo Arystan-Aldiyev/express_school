@@ -45,6 +45,12 @@ db.calendar = require('./calendar.model.js')(sequelize, Sequelize);
 db.lesson = require('./lesson.model')(sequelize, Sequelize);
 db.topic = require('./topic.model')(sequelize, Sequelize);
 db.content = require('./content.model')(sequelize, Sequelize);
+db.satTest = require('./satTest.model')(sequelize, Sequelize);
+db.satQuestion = require('./satQuestion.model')(sequelize, Sequelize);
+db.satAnswerOption = require('./satAnswerOption.model')(sequelize, Sequelize);
+db.satAnswer = require('./satAnswer.model')(sequelize, Sequelize);
+db.satAttempt = require('./satAttempt.model')(sequelize, Sequelize);
+
 
 // Define associations
 db.group.belongsTo(db.user, {foreignKey: 'teacher_id', as: 'teacher'});
@@ -101,5 +107,23 @@ db.user.hasMany(db.message, {as: 'receivedMessages', foreignKey: 'user_id'});
 db.dashboardAnnouncement.belongsTo(db.user, {foreignKey: 'author_id'});
 db.user.hasMany(db.dashboardAnnouncement, {foreignKey: 'author_id'});
 
+// Define associations
+db.satTest.hasMany(db.satQuestion, {foreignKey: 'test_id', as: 'sat_questions'});
+db.satQuestion.belongsTo(db.satTest, {foreignKey: 'test_id', as: 'sat_test'});
+
+db.satQuestion.hasMany(db.satAnswerOption, {foreignKey: 'question_id', as: 'sat_answer_options'});
+db.satAnswerOption.belongsTo(db.satQuestion, {foreignKey: 'question_id', as: 'sat_question'});
+
+db.satAttempt.hasMany(db.satAnswer, {foreignKey: 'sat_attempt_id', as: 'sat_answers'});
+db.satAnswer.belongsTo(db.satAttempt, {foreignKey: 'sat_attempt_id', as: 'sat_attempt'});
+
+db.satAnswer.belongsTo(db.satQuestion, {foreignKey: 'sat_question_id', as: 'sat_question'});
+db.satQuestion.hasMany(db.satAnswer, {foreignKey: 'sat_question_id', as: 'sat_answers'});
+
+db.satAttempt.belongsTo(db.satTest, {foreignKey: 'test_id', as: 'sat_test'});
+db.satTest.hasMany(db.satAttempt, {foreignKey: 'test_id', as: 'sat_attempts'});
+
+db.satAttempt.belongsTo(db.user, {foreignKey: 'user_id', as: 'user'});
+db.user.hasMany(db.satAttempt, {foreignKey: 'user_id', as: 'sat_attempts'});
 
 module.exports = db;
