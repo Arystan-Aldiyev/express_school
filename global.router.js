@@ -13,6 +13,10 @@ const calendarRoutes = require('./routes/calendar.routes');
 const lessonRoutes = require('./routes/lesson.routes');
 const topicRoutes = require('./routes/topic.routes');
 const contentRoutes = require('./routes/content.routes');
+const satTestRoutes = require('./routes/satTest.routes');
+const satQuestionRoutes = require('./routes/satQuestion.routes');
+const satAnswerOptionRoutes = require('./routes/satAnswerOption.routes')
+const satAttemptRoutes = require('./routes/satAttempt.routes')
 
 const router = express.Router();
 
@@ -30,4 +34,9 @@ router.use('/', calendarRoutes)
 router.use('/', lessonRoutes)
 router.use('/', topicRoutes)
 router.use('/', contentRoutes)
+router.use('/', satTestRoutes)
+router.use('/', satQuestionRoutes)
+router.use('/', satAnswerOptionRoutes)
+router.use('/', satAttemptRoutes)
+
 module.exports = router;
