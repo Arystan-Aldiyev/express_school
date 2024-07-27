@@ -1,6 +1,6 @@
 const express = require('express');
 const router = express.Router();
-const {verifyToken} = require('../middleware/authJwt');
+const { verifyToken } = require('../middleware/authJwt');
 const attemptController = require('../controllers/attempt.controller');
 
 /**
@@ -49,6 +49,9 @@ const attemptController = require('../controllers/attempt.controller');
  *                   updatedAt:
  *                     type: string
  *                     format: date-time
+ *                   question_count:
+ *                     type: integer
+ *                     description: Number of questions in the test
  *       401:
  *         description: Unauthorized
  *         content:
@@ -109,9 +112,73 @@ router.get('/users/:user_id/attempts/:test_id', [verifyToken], attemptController
  *         content:
  *           application/json:
  *             schema:
- *               type: array
- *               items:
- *                 $ref: '#/components/schemas/Answer'
+ *               type: object
+ *               properties:
+ *                 attempt:
+ *                   type: object
+ *                   properties:
+ *                     attempt_id:
+ *                       type: integer
+ *                     test_id:
+ *                       type: integer
+ *                     user_id:
+ *                       type: integer
+ *                     start_time:
+ *                       type: string
+ *                       format: date-time
+ *                     end_time:
+ *                       type: string
+ *                       format: date-time
+ *                     score:
+ *                       type: number
+ *                       format: float
+ *                     question_count:
+ *                       type: integer
+ *                       description: Number of questions in the test
+ *                     test:
+ *                       type: object
+ *                       properties:
+ *                         test_id:
+ *                           type: integer
+ *                         group_id:
+ *                           type: integer
+ *                         name:
+ *                           type: string
+ *                         time_open:
+ *                           type: string
+ *                           format: date-time
+ *                         duration_minutes:
+ *                           type: integer
+ *                         max_attempts:
+ *                           type: integer
+ *                         questions:
+ *                           type: array
+ *                           items:
+ *                             type: object
+ *                             properties:
+ *                               question_id:
+ *                                 type: integer
+ *                               question_text:
+ *                                 type: string
+ *                               hint:
+ *                                 type: string
+ *                               image:
+ *                                 type: string
+ *                               explanation:
+ *                                 type: string
+ *                               answerOptions:
+ *                                 type: array
+ *                                 items:
+ *                                   type: object
+ *                                   properties:
+ *                                     option_id:
+ *                                       type: integer
+ *                                     option_text:
+ *                                       type: string
+ *                                     is_correct:
+ *                                       type: boolean
+ *                                     selected:
+ *                                       type: boolean
  *       404:
  *         description: Attempt not found
  *         content:
@@ -153,8 +220,34 @@ router.get('/attempts/:user_id/answers/:attempt_id', [verifyToken], attemptContr
  *     responses:
  *       200:
  *         description: Attempt deleted
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 message:
+ *                   type: string
+ *                   example: "Attempt was deleted successfully!"
  *       404:
  *         description: Attempt not found
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 message:
+ *                   type: string
+ *                   example: "Cannot delete Attempt with id={id}. Maybe Attempt was not found!"
+ *       500:
+ *         description: Internal Server Error
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 message:
+ *                   type: string
+ *                   example: "Could not delete Attempt with id={id}"
  */
 router.delete('/attempts/:id', [verifyToken], attemptController.deleteAttempt);
 
