@@ -1,7 +1,7 @@
 const express = require('express');
 const router = express.Router();
 const lessonController = require('../controllers/lesson.controller');
-const { verifyToken, verifyIsAdmin, verifyIsTeacher } = require('../middleware/authJwt');
+const {verifyToken, verifyIsAdmin, verifyIsTeacher} = require('../middleware/authJwt');
 
 /**
  * @swagger
@@ -16,17 +16,21 @@ const { verifyToken, verifyIsAdmin, verifyIsTeacher } = require('../middleware/a
  *       type: object
  *       required:
  *         - group_id
+ *         - subject
  *         - section_title
  *       properties:
  *         lesson_id:
  *           type: integer
  *         group_id:
  *           type: integer
+ *         subject:
+ *           type: string
  *         section_title:
  *           type: string
  *       example:
  *         lesson_id: 1
  *         group_id: 2
+ *         subject: "Math"
  *         section_title: "Introduction to Math"
  *
  * security:
@@ -139,6 +143,34 @@ router.get('/lessons/group/:group_id', [verifyToken], lessonController.getLesson
 
 /**
  * @swagger
+ * /api/lessons/subject/{subject}:
+ *   get:
+ *     summary: Retrieve a lesson by subject
+ *     tags: [Lessons]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: subject
+ *         schema:
+ *           type: string
+ *         required: true
+ *         description: The lesson subject
+ *     responses:
+ *       200:
+ *         description: A lesson with the specified subject
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/Lesson'
+ *       404:
+ *         description: Lesson not found
+ */
+router.get('/lessons/subject/:subject', [verifyToken], lessonController.getLessonBySubject);
+
+
+/**
+ * @swagger
  * /api/lessons/{lesson_id}:
  *   put:
  *     summary: Update a lesson by ID
@@ -167,6 +199,8 @@ router.get('/lessons/group/:group_id', [verifyToken], lessonController.getLesson
  *               $ref: '#/components/schemas/Lesson'
  *       404:
  *         description: Lesson not found
+ *       409:
+ *         description: Subject with that name already exists
  */
 router.put('/lessons/:lesson_id', [verifyToken, verifyIsAdmin || verifyIsTeacher], lessonController.updateLesson);
 
