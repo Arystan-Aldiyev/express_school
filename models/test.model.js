@@ -5,6 +5,11 @@ module.exports = (sequelize, DataTypes) => {
             primaryKey: true,
             autoIncrement: true
         },
+        subject: {
+            type: DataTypes.STRING,
+            unique: true,
+            allowNull: false,
+        },
         group_id: {
             type: DataTypes.INTEGER,
             references: {

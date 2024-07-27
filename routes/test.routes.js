@@ -65,12 +65,15 @@ const testController = require('../controllers/test.controller');
  *       type: object
  *       required:
  *         - name
+ *         - subject
  *       properties:
  *         test_id:
  *           type: integer
  *         group_id:
  *           type: integer
  *         name:
+ *           type: string
+ *         subject:
  *           type: string
  *         time_open:
  *           type: string
@@ -87,6 +90,7 @@ const testController = require('../controllers/test.controller');
  *         test_id: 1
  *         group_id: 1
  *         name: "Sample Test"
+ *         subject: "Mathematics"
  *         time_open: "2024-05-25T08:00:00Z"
  *         duration_minutes: 60
  *         max_attempts: 3
@@ -105,6 +109,32 @@ const testController = require('../controllers/test.controller');
  *                 option_text: "Option B"
  *                 is_correct: false
  *     SubmitTest:
+ *       type: object
+ *       required:
+ *         - answers
+ *         - startTime
+ *       properties:
+ *         answers:
+ *           type: array
+ *           items:
+ *             type: object
+ *             properties:
+ *               question_id:
+ *                 type: integer
+ *                 description: The ID of the question
+ *               answer:
+ *                 type: integer
+ *                 description: The selected answer ID
+ *           example:
+ *             - question_id: 1
+ *               answer: 3
+ *             - question_id: 2
+ *               answer: 7
+ *         startTime:
+ *           type: string
+ *           format: date-time
+ *           example: "2024-07-19T12:00:00Z"
+ *     SuspendTest:
  *       type: object
  *       required:
  *         - answers
@@ -397,6 +427,35 @@ router.get('/tests/group/:group_id', [verifyToken], testController.findAllTestBy
 
 /**
  * @swagger
+ * /api/tests/subject/{subject}:
+ *   get:
+ *     summary: Retrieve tests by subject with details
+ *     tags: [Tests]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: subject
+ *         schema:
+ *           type: string
+ *         required: true
+ *         description: The subject name
+ *     responses:
+ *       200:
+ *         description: A list of tests for the subject
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: array
+ *               items:
+ *                 $ref: '#/components/schemas/Test'
+ *       404:
+ *         description: No tests found for this subject
+ */
+router.get('/tests/subject/:subject', [verifyToken], testController.getTestBySubject);
+
+/**
+ * @swagger
  * /api/tests/{test_id}/suspend:
  *   post:
  *     summary: Suspend a test
@@ -415,28 +474,7 @@ router.get('/tests/group/:group_id', [verifyToken], testController.findAllTestBy
  *       content:
  *         application/json:
  *           schema:
- *             type: object
- *             properties:
- *               answers:
- *                 type: array
- *                 items:
- *                   type: object
- *                   properties:
- *                     question_id:
- *                       type: integer
- *                       description: The ID of the question
- *                     answer:
- *                       type: integer
- *                       description: The selected answer ID
- *                 example:
- *                   - question_id: 1
- *                     answer: 3
- *                   - question_id: 2
- *                     answer: 7
- *               startTime:
- *                 type: string
- *                 format: date-time
- *                 example: "2024-07-19T12:00:00Z"
+ *             $ref: '#/components/schemas/SuspendTest'
  *     responses:
  *       200:
  *         description: Test suspended successfully
