@@ -6,7 +6,7 @@ const Question = db.question;
 const AnswerOption = db.answerOption;
 
 // Retrieve all attempts for a user
-exports.findAllAttempts = (req, res) => {
+exports.findAllAttempts = async (req, res) => {
     const user_id = req.params.user_id;
     const test_id = req.params.test_id;
     const userRole = req.userRole;
@@ -15,20 +15,37 @@ exports.findAllAttempts = (req, res) => {
         return res.status(409).json("You don't have access to these attempts");
     }
 
-    Attempt.findAll({
-        where: {
-            user_id: user_id,
-            test_id: test_id
-        }
-    })
-        .then(data => {
-            res.send(data);
-        })
-        .catch(err => {
-            res.status(500).send({
-                message: err.message || "Some error occurred while retrieving attempts."
-            });
+    try {
+        const attempts = await Attempt.findAll({
+            where: {
+                user_id: user_id,
+                test_id: test_id
+            },
+            include: [
+                {
+                    model: Test,
+                    as: 'Test',
+                    include: [
+                        {
+                            model: Question,
+                            as: 'questions'
+                        }
+                    ]
+                }
+            ]
         });
+
+        const transformedData = attempts.map(attempt => ({
+            ...attempt.get({plain: true}),
+            question_count: attempt.Test.questions.length
+        }));
+
+        res.send(transformedData);
+    } catch (err) {
+        res.status(500).send({
+            message: err.message || "Some error occurred while retrieving attempts."
+        });
+    }
 };
 
 // Retrieve all answers for an attempt
@@ -44,38 +61,35 @@ exports.findAnswersForAttempt = async (req, res) => {
     try {
         let attempt = await Attempt.findOne({
             where: {attempt_id: attempt_id, user_id: userId},
-            include: [{
-                model: Test,
-                as: 'Test',
-                include: [{
-                    model: Question,
-                    as: 'questions',
-                    include: [{
-                        model: Answer,
-                        as: 'Answers',
-                        where: {attempt_id: attempt_id, user_id: userId},
-                        required: false
-                    }, {
-                        model: AnswerOption,
-                        as: 'answerOptions'
-                    }]
-                }]
-            }]
+            include: [
+                {
+                    model: Test,
+                    as: 'Test',
+                    include: [
+                        {
+                            model: Question,
+                            as: 'questions',
+                            include: [
+                                {
+                                    model: Answer,
+                                    as: 'Answers',
+                                    where: {attempt_id: attempt_id, user_id: userId},
+                                    required: false
+                                },
+                                {
+                                    model: AnswerOption,
+                                    as: 'answerOptions'
+                                }
+                            ]
+                        }
+                    ]
+                }
+            ]
         });
 
-        console.log(JSON.stringify(attempt));
-
         if (!attempt) {
-            console.log(`No attempt found for attempt_id ${attempt_id} and user_id ${userId}`);
             return res.status(404).send({
                 message: "No attempt found with this id for the user."
-            });
-        }
-
-        if (!attempt.Test || !attempt.Test.questions) {
-            console.log(`No questions found for test_id ${attempt.Test.test_id}`);
-            return res.status(404).send({
-                message: "No questions found for the test associated with this attempt."
             });
         }
 
@@ -87,7 +101,8 @@ exports.findAnswersForAttempt = async (req, res) => {
                 start_time: attempt.start_time,
                 end_time: attempt.end_time,
                 score: attempt.score,
-                Test: {
+                question_count: attempt.Test.questions.length,
+                test: {
                     test_id: attempt.Test.test_id,
                     group_id: attempt.Test.group_id,
                     name: attempt.Test.name,
@@ -96,7 +111,6 @@ exports.findAnswersForAttempt = async (req, res) => {
                     max_attempts: attempt.Test.max_attempts,
                     questions: attempt.Test.questions.map(question => {
                         const userAnswer = question.Answers.find(answer => answer.question_id === question.question_id);
-                        console.log(JSON.stringify(userAnswer))
                         return {
                             question_id: question.question_id,
                             question_text: question.question_text,
