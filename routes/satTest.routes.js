@@ -48,6 +48,29 @@ const satTestController = require('../controllers/satTest.controller');
  *       example:
  *         question_id: 1
  *         option_id: 2
+ *     SatQuestion:
+ *       type: object
+ *       properties:
+ *         sat_question_id:
+ *           type: integer
+ *         text:
+ *           type: string
+ *         section:
+ *           type: string
+ *       example:
+ *         sat_question_id: 1
+ *         text: "What is 2 + 2?"
+ *         section: "Math"
+ *     SatAnswerOption:
+ *       type: object
+ *       properties:
+ *         sat_answer_option_id:
+ *           type: integer
+ *         text:
+ *           type: string
+ *       example:
+ *         sat_answer_option_id: 1
+ *         text: "4"
  *
  * security:
  *   - bearerAuth: []
@@ -140,6 +163,54 @@ router.get('/satTests/group/:group_id', [verifyToken], satTestController.getSatT
  *         description: Server error
  */
 router.get('/satTests/:id', [verifyToken], satTestController.getSatTestById);
+
+/**
+ * @swagger
+ * /api/satTests/{id}/details:
+ *   get:
+ *     summary: Retrieve a single SAT test with detailed questions and answers by ID
+ *     tags: [SAT Tests]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         schema:
+ *           type: integer
+ *         required: true
+ *         description: The ID of the SAT test
+ *     responses:
+ *       200:
+ *         description: A single SAT test with detailed questions and answers
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 sat_test_id:
+ *                   type: integer
+ *                 name:
+ *                   type: string
+ *                 group_id:
+ *                   type: integer
+ *                 opens:
+ *                   type: string
+ *                   format: date-time
+ *                 due:
+ *                   type: string
+ *                   format: date-time
+ *                 questionsBySection:
+ *                   type: object
+ *                   additionalProperties:
+ *                     type: array
+ *                     items:
+ *                       $ref: '#/components/schemas/SatQuestion'
+ *       404:
+ *         description: SAT test not found
+ *       500:
+ *         description: Server error
+ */
+router.get('/satTests/:id/details', [verifyToken], satTestController.getSatTestWithDetails);
 
 /**
  * @swagger

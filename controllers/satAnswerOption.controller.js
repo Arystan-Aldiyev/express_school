@@ -1,54 +1,80 @@
 const db = require('../models');
 const SatAnswerOption = db.satAnswerOption;
+const SatQuestion = db.satQuestion
 
 // Create and Save one or more AnswerOptions
-exports.createAnswerOption = (req, res) => {
-    if (!req.body.option_text || !req.body.question_id) {
+exports.createAnswerOption = async (req, res) => {
+    const {option_text, question_id, is_correct = false} = req.body;
+
+    if (!option_text || !question_id) {
         return res.status(400).send({
             message: 'Option text and question ID cannot be empty!',
         });
     }
 
-    const answerOption = {
-        question_id: req.body.question_id,
-        text: req.body.option_text,
-        is_correct: req.body.is_correct || false,
-    };
+    try {
+        const satQuestion = await SatQuestion.findByPk(question_id);
 
-    SatAnswerOption.create(answerOption)
-        .then((data) => {
-            res.status(201).send(data);
-        })
-        .catch((err) => {
-            res.status(500).send({
-                message: err.message || 'Some error occurred while creating the AnswerOption.',
-            });
+        if (!satQuestion) {
+            return res.status(404).json({message: "No SAT question found with such ID"});
+        }
+
+        const answerOption = {
+            question_id,
+            text: option_text,
+            is_correct,
+        };
+
+        const data = await SatAnswerOption.create(answerOption);
+        res.status(201).send(data);
+    } catch (err) {
+        res.status(500).send({
+            message: err.message || 'Some error occurred while creating the AnswerOption.',
         });
+    }
 };
 
-// Create and Save multiple AnswerOptions
-exports.createAnswerOptionsBulk = (req, res) => {
-    if (!req.body.answerOptions || !Array.isArray(req.body.answerOptions)) {
+exports.createAnswerOptionsBulk = async (req, res) => {
+    const {answerOptions} = req.body;
+
+
+    if (!answerOptions || !Array.isArray(answerOptions)) {
         return res.status(400).send({
             message: 'AnswerOptions should be an array!',
         });
     }
 
-    const answerOptions = req.body.answerOptions.map((option) => ({
-        question_id: option.question_id,
-        option_text: option.option_text,
-        is_correct: option.is_correct || false,
-    }));
 
-    SatAnswerOption.bulkCreate(answerOptions, {returning: true})
-        .then((data) => {
-            res.status(201).send(data);
-        })
-        .catch((err) => {
-            res.status(500).send({
-                message: err.message || 'Some error occurred while creating the AnswerOptions.',
-            });
+    try {
+        const questionIds = [...new Set(answerOptions.map(option => option.question_id))];
+
+        const satQuestions = await SatQuestion.findAll({
+            where: {
+                sat_question_id: questionIds
+            }
         });
+
+
+        const foundQuestionIds = satQuestions.map(q => q.sat_question_id);
+        const missingQuestionIds = questionIds.filter(id => !foundQuestionIds.includes(id));
+
+        if (missingQuestionIds.length > 0) {
+            return res.status(404).json({message: `No SAT questions found with IDs: ${missingQuestionIds.join(', ')}`});
+        }
+
+        const formattedAnswerOptions = answerOptions.map((option) => ({
+            question_id: option.question_id,
+            text: option.option_text,
+            is_correct: option.is_correct || false,
+        }));
+
+        const data = await SatAnswerOption.bulkCreate(formattedAnswerOptions, {returning: true});
+        res.status(201).send(data.map(option => ({id: option.id, ...option.get()})));
+    } catch (err) {
+        res.status(500).send({
+            message: err.message || 'Some error occurred while creating the AnswerOptions.',
+        });
+    }
 };
 
 // Retrieve all AnswerOptions for admin

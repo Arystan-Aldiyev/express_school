@@ -81,9 +81,22 @@ router.post('/satAnswerOptions', [verifyToken, verifyIsAdmin || verifyIsTeacher]
  *       content:
  *         application/json:
  *           schema:
- *             type: array
- *             items:
- *               $ref: '#/components/schemas/SatAnswerOption'
+ *             type: object
+ *             properties:
+ *               answerOptions:
+ *                 type: array
+ *                 items:
+ *                   type: object
+ *                   properties:
+ *                     question_id:
+ *                       type: integer
+ *                       example: 1
+ *                     option_text:
+ *                       type: string
+ *                       example: "Option text here"
+ *                     is_correct:
+ *                       type: boolean
+ *                       example: false
  *     responses:
  *       201:
  *         description: Answer options created
@@ -92,9 +105,20 @@ router.post('/satAnswerOptions', [verifyToken, verifyIsAdmin || verifyIsTeacher]
  *             schema:
  *               type: array
  *               items:
- *                 $ref: '#/components/schemas/SatAnswerOption'
+ *                 type: object
+ *                 properties:
+ *                   id:
+ *                     type: integer
+ *                   question_id:
+ *                     type: integer
+ *                   text:
+ *                     type: string
+ *                   is_correct:
+ *                     type: boolean
  *       400:
  *         description: Invalid input
+ *       404:
+ *         description: One or more SAT questions not found with the provided IDs
  *       500:
  *         description: Server error
  */

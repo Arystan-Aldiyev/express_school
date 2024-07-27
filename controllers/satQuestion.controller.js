@@ -4,11 +4,14 @@ const {v4: uuidv4} = require('uuid');
 const {awsBucketName} = require('../config/aws.config');
 const {s3} = require('../services/amazon.s3.service');
 const SatQuestion = db.satQuestion;
+const SatTest = db.satTest
 
 // Create a new question
 exports.createSatQuestion = async (req, res) => {
     let imagePath = null;
-
+    if(!req.body.test_id){
+        return res.status(400).json({message: 'Test id is required'})
+    }
     if (req.file) {
         const originalName = path.parse(req.file.originalname).name;
         const extension = path.extname(req.file.originalname);
@@ -31,6 +34,10 @@ exports.createSatQuestion = async (req, res) => {
         }
     }
     try {
+        const sat_test = await SatTest.findByPk(req.body.test_id)
+        if(!sat_test){
+            return res.status(404).json({message: "Not sat test with such id"})
+        }
         const question = await SatQuestion.create({
             test_id: req.body.test_id,
             question_text: req.body.question_text,

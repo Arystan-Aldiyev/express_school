@@ -1,14 +1,18 @@
 const db = require("../models");
 const AnswerOption = db.answerOption;
-
+const Question = db.question
 // Create and Save one or more AnswerOptions
-exports.createAnswerOption = (req, res) => {
+exports.createAnswerOption = async (req, res) => {
     if (!req.body.option_text || !req.body.question_id) {
         return res.status(400).send({
             message: "Option text and question ID can not be empty!"
         });
     }
 
+    const question = await Question.findByPk(req.body.question_id)
+    if (!question) {
+        return res.status(404).json({message: "Not question such id"})
+    }
     const answerOption = {
         question_id: req.body.question_id,
         option_text: req.body.option_text,
@@ -27,7 +31,7 @@ exports.createAnswerOption = (req, res) => {
 };
 
 // Create and Save multiple AnswerOptions
-exports.createAnswerOptionsBulk = (req, res) => {
+exports.createAnswerOptionsBulk = async (req, res) => {
     if (!req.body.answerOptions || !Array.isArray(req.body.answerOptions)) {
         return res.status(400).send({
             message: "AnswerOptions should be an array!"
@@ -40,15 +44,30 @@ exports.createAnswerOptionsBulk = (req, res) => {
         is_correct: option.is_correct || false
     }));
 
-    AnswerOption.bulkCreate(answerOptions, {returning: true})
-        .then(data => {
-            res.status(201).send(data);
-        })
-        .catch(err => {
-            res.status(500).send({
-                message: err.message || "Some error occurred while creating the AnswerOptions."
-            });
+    const questionIds = [...new Set(answerOptions.map(option => option.question_id))];
+
+    try {
+        const questions = await Question.findAll({
+            where: {
+                question_id: questionIds
+            }
         });
+
+        if (questions.length !== questionIds.length) {
+            const existingQuestionIds = questions.map(question => question.question_id);
+            const missingQuestionIds = questionIds.filter(id => !existingQuestionIds.includes(id));
+            return res.status(404).send({
+                message: `Questions not found for the following IDs: ${missingQuestionIds.join(', ')}`
+            });
+        }
+
+        const createdAnswerOptions = await AnswerOption.bulkCreate(answerOptions, {returning: true});
+        res.status(201).send(createdAnswerOptions);
+    } catch (err) {
+        res.status(500).send({
+            message: err.message || "Some error occurred while creating the AnswerOptions."
+        });
+    }
 };
 
 exports.findAllAnswerOptionsForAdmin = (req, res) => {

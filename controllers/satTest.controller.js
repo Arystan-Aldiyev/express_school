@@ -36,6 +36,70 @@ exports.getSatTestsByGroup = async (req, res) => {
     }
 };
 
+exports.getSatTestWithDetails = async (req, res) => {
+    const {id} = req.params;
+
+    try {
+        const data = await SatTest.findByPk(id, {
+            include: [
+                {
+                    model: SatQuestion,
+                    as: 'sat_questions',
+                    attributes: ['sat_question_id', 'question_text', 'section', 'hint', 'image', 'test_id', 'createdAt', 'updatedAt'],
+                    include: [
+                        {
+                            model: SatAnswerOption,
+                            as: 'sat_answer_options',
+                            attributes: {exclude: ['is_correct']}
+                        }
+                    ]
+                }
+            ]
+        });
+
+        if (data) {
+            const sections = data.sat_questions.reduce((acc, question) => {
+                const section = question.section || 'default';
+                if (!acc[section]) {
+                    acc[section] = [];
+                }
+                acc[section].push({
+                    question: {
+                        sat_question_id: question.sat_question_id,
+                        question_text: question.question_text,
+                        hint: question.hint,
+                        image: question.image,
+                        test_id: question.test_id,
+                        createdAt: question.createdAt,
+                        updatedAt: question.updatedAt,
+                        answerOptions: question.sat_answer_options
+                    },
+                });
+                return acc;
+            }, {});
+
+            res.status(200).json({
+                name: data.name,
+                group_id: data.group_id,
+                opens: data.opens,
+                due: data.due,
+                createdAt: data.createdAt,
+                updatedAt: data.updatedAt,
+                sections
+            });
+        } else {
+            res.status(404).json({
+                message: `Cannot find SAT test with id=${id}.`
+            });
+        }
+    } catch (error) {
+        console.error("Error retrieving SAT test with id=" + id, error);
+        res.status(500).json({
+            message: "Error retrieving SAT test with id=" + id
+        });
+    }
+};
+
 // Get a single SAT test by ID
 exports.getSatTestById = async (req, res) => {
     const {id} = req.params;
@@ -114,22 +178,21 @@ exports.submitSatTest = async (req, res) => {
             return res.status(404).json({message: 'Test not found'});
         }
 
-        let verbalScore = 0;
-        let satScore = 0;
-
+        const scores = {};
         const attempt = await SatAttempt.create({
             test_id: testId,
             user_id: userId,
-            verbal_score: 0,
-            sat_score: 0,
             total_score: 0
         });
 
         for (const section in answers) {
+            scores[section] = 0;  // Initialize the score for the section
+
             for (const answer of answers[section]) {
                 const questionId = answer.question_id;
                 const userAnswer = answer.option_id;
                 const question = test.sat_questions.find(q => q.sat_question_id === questionId);
+
                 if (!question) {
                     continue;
                 }
@@ -143,26 +206,20 @@ exports.submitSatTest = async (req, res) => {
 
                 const correctOption = question.sat_answer_options.find(option => option.is_correct);
                 if (correctOption && userAnswer === correctOption.sat_answer_option_id) {
-                    if (section === 'verbal') {
-                        verbalScore++;
-                    } else if (section === 'sat') {
-                        satScore++;
-                    }
+                    scores[section]++;
                 }
             }
         }
 
-        const totalScore = verbalScore + satScore;
-        attempt.verbal_score = verbalScore;
-        attempt.sat_score = satScore;
+        const totalScore = Object.values(scores).reduce((acc, score) => acc + score, 0);
+
         attempt.total_score = totalScore;
         await attempt.save();
 
         res.json({
             scores: {
-                totalScore,
-                verbalScore,
-                satScore
+                ...scores,
+                totalScore
             }
         });
     } catch (error) {
