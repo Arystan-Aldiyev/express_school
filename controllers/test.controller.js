@@ -1,10 +1,12 @@
 const db = require("../models");
+const {awsRegion} = require("../config/aws.config");
 const Group = db.group;
 const Test = db.test;
 const Question = db.question;
 const AnswerOption = db.answerOption;
 const Attempt = db.attempt;
 const Answer = db.answer;
+const SuspendTestAnswer = db.suspendTestAnswer
 
 // Create and Save a new Test
 exports.createTest = (req, res) => {
@@ -53,6 +55,41 @@ exports.findAllTest = (req, res) => {
                 message: err.message || "Some error occurred while retrieving tests."
             });
         });
+};
+
+exports.findAllTestByGroupId = async (req, res) => {
+    const groupId = req.params.group_id;
+    const userId = req.userId;
+
+    try {
+        const tests = await Test.findAll({
+            where: {group_id: groupId},
+            include: [{
+                model: SuspendTestAnswer,
+                as: 'SuspendTestAnswers',
+                where: {user_id: userId},
+                required: false
+            }]
+        });
+
+        const transformedTests = tests.map(test => {
+            const hasSuspendedAnswers = test.SuspendTestAnswers && test.SuspendTestAnswers.length > 0;
+            const testJSON = test.toJSON();
+            delete testJSON.SuspendTestAnswers;
+            return {
+                ...testJSON,
+                continue: hasSuspendedAnswers,
+                is_completed: !hasSuspendedAnswers
+            };
+        });
+
+        res.send(transformedTests);
+    } catch (err) {
+        console.error('Error retrieving tests:', err);
+        res.status(500).send({
+            message: err.message || "Some error occurred while retrieving tests."
+        });
+    }
 };
 
 // Find a single Test with an id
@@ -197,13 +234,16 @@ exports.submitTest = async (req, res) => {
 
         const timeTaken = (endTime - parsedStartTime) / 1000;
 
+        await SuspendTestAnswer.destroy({
+            where: {test_id: testId, user_id: userId}
+        });
+
         res.json({score, timeTaken});
     } catch (error) {
         console.error(`Error submitting test with id=${testId}`, error);
         res.status(500).json({message: 'Server error', error});
     }
 };
-
 
 // Update a Test by the id in the request
 exports.updateTest = (req, res) => {
@@ -254,3 +294,123 @@ exports.deleteTest = (req, res) => {
             });
         });
 };
+
+exports.suspendTest = async (req, res) => {
+    const testId = req.params.test_id;
+    const {answers, startTime} = req.body;
+    const userId = req.userId;
+
+    try {
+        const test = await Test.findOne({
+            where: {test_id: testId},
+            include: [{
+                model: Question,
+                as: 'questions',
+                include: [{
+                    model: AnswerOption,
+                    as: 'answerOptions'
+                }]
+            }]
+        });
+
+        if (!test) {
+            return res.status(404).json({message: 'Test not found'});
+        }
+
+        const suspendTime = new Date();
+
+        for (const answer of answers) {
+            const questionId = answer.question_id;
+            const userAnswer = answer.answer;
+            const question = test.questions.find(q => q.question_id === questionId);
+            if (!question) {
+                continue;
+            }
+
+            await SuspendTestAnswer.create({
+                question_id: questionId,
+                user_id: userId,
+                student_answer: userAnswer,
+                test_id: testId,
+                start_time: new Date(startTime),
+                suspend_time: suspendTime
+            });
+        }
+
+        res.status(200).json({message: 'Test suspended successfully'});
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({message: 'An error occurred while suspending the test'});
+    }
+}
+
+exports.continueSuspendTest = async (req, res) => {
+    const testId = req.params.test_id;
+    const userId = req.userId;
+
+    try {
+        const test = await Test.findByPk(testId);
+        if (!test) {
+            return res.status(404).json({message: 'Test not found'});
+        }
+
+        const testWithOptions = await Test.findOne({
+            where: {test_id: testId},
+            include: [
+                {
+                    model: Question,
+                    as: 'questions',
+                    attributes: {exclude: ['explanation']},
+                    include: [
+                        {
+                            model: AnswerOption,
+                            as: 'answerOptions',
+                            attributes: {exclude: ['is_correct']}
+                        },
+                        {
+                            model: SuspendTestAnswer,
+                            as: 'suspendTestAnswers',
+                            where: {user_id: userId},
+                            required: false
+                        }
+                    ]
+                }
+            ]
+        });
+
+        if (!testWithOptions) {
+            return res.status(404).json({message: 'No suspended answers found for this test'});
+        }
+
+        const transformedData = {
+            test_id: testWithOptions.test_id,
+            group_id: testWithOptions.group_id,
+            name: testWithOptions.name,
+            time_open: testWithOptions.time_open,
+            duration_minutes: testWithOptions.duration_minutes,
+            max_attempts: testWithOptions.max_attempts,
+            questions: testWithOptions.questions.map(question => {
+                const suspendAnswer = question.suspendTestAnswers.find(answer => answer.question_id === question.question_id);
+                return {
+                    question_id: question.question_id,
+                    question_text: question.question_text,
+                    hint: question.hint,
+                    image: question.image,
+                    explanation: question.explanation,
+                    student_answer: suspendAnswer ? suspendAnswer.student_answer : null,
+                    answerOptions: question.answerOptions.map(option => ({
+                        option_id: option.option_id,
+                        option_text: option.option_text,
+                        is_correct: option.is_correct,
+                        selected: suspendAnswer ? parseInt(suspendAnswer.student_answer) === option.option_id : false
+                    }))
+                };
+            })
+        };
+
+        res.status(200).json(transformedData);
+    } catch (err) {
+        console.log(err);
+        return res.status(500).json({message: 'Something went wrong'});
+    }
+}
