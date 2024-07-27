@@ -97,6 +97,38 @@ router.post('/contents/file', [verifyToken, verifyIsAdmin || verifyIsTeacher], u
 
 /**
  * @swagger
+ * /api/contents/video:
+ *   post:
+ *     summary: Create a new content with video mode
+ *     tags: [Contents]
+ *     security:
+ *       - bearerAuth: []
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         multipart/form-data:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               topic_id:
+ *                 type: integer
+ *               title:
+ *                 type: string
+ *               file:
+ *                 type: string
+ *                 format: binary
+ *     responses:
+ *       201:
+ *         description: Content created
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/Content'
+ */
+router.post('/contents/video', [verifyToken, verifyIsAdmin || verifyIsTeacher], upload.single('file'), contentController.createContentWithVideo);
+
+/**
+ * @swagger
  * /api/contents:
  *   get:
  *     summary: Retrieve a list of contents
@@ -244,6 +276,47 @@ router.put('/contents/:content_id', [verifyToken, verifyIsAdmin || verifyIsTeach
  *         description: Content not found
  */
 router.put('/contents/file/:content_id', [verifyToken, verifyIsAdmin || verifyIsTeacher], upload.single('file'), contentController.updateContentWithFile);
+
+/**
+ * @swagger
+ * /api/contents/video/{content_id}:
+ *   put:
+ *     summary: Update a content with video mode by ID
+ *     tags: [Contents]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: content_id
+ *         schema:
+ *           type: integer
+ *         required: true
+ *         description: The content ID
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         multipart/form-data:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               topic_id:
+ *                 type: integer
+ *               title:
+ *                 type: string
+ *               file:
+ *                 type: string
+ *                 format: binary
+ *     responses:
+ *       200:
+ *         description: Content updated successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/Content'
+ *       404:
+ *         description: Content not found
+ */
+router.put('/contents/video/:content_id', [verifyToken, verifyIsAdmin || verifyIsTeacher], upload.single('file'), contentController.updateContentWithVideo);
 
 /**
  * @swagger
