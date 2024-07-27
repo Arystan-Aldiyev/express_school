@@ -58,6 +58,43 @@ exports.createContentWithFile = async (req, res) => {
     }
 };
 
+// Create Content with video mode
+exports.createContentWithVideo = async (req, res) => {
+    if (!req.file) {
+        return res.status(400).send({message: "No video uploaded"});
+    }
+
+    const originalName = path.parse(req.file.originalname).name;
+    const extension = path.extname(req.file.originalname);
+    const truncatedName = originalName.length > 20 ? originalName.substring(0, 20) : originalName;
+    const shortUuid = uuidv4().split('-')[0]; // Shorter UUID
+    const fileName = `${truncatedName}-${shortUuid}${extension}`;
+
+    const params = {
+        Bucket: awsBucketName,
+        Key: `contents/${fileName}`,
+        Body: req.file.buffer,
+        ContentType: req.file.mimetype
+    };
+
+    try {
+        const data = await s3.upload(params).promise();
+        const existingTopic = await Topic.findByPk(req.body.topic_id);
+        if (!existingTopic) {
+            return res.status(404).json({message: "Topic not found"});
+        }
+        const newContent = await Content.create({
+            topic_id: req.body.topic_id,
+            title: req.body.title,
+            mode: 'video',
+            resource: data.Location
+        });
+        res.status(201).json(newContent);
+    } catch (err) {
+        res.status(500).send({message: err.message});
+    }
+};
+
 // Get all Contents
 exports.getContents = async (req, res) => {
     try {
@@ -158,6 +195,48 @@ exports.updateContentWithFile = async (req, res) => {
             content.topic_id = req.body.topic_id;
             content.title = req.body.title;
             content.mode = 'file';
+            content.resource = data.Location;
+            await content.save();
+            res.status(200).json(content);
+        } else {
+            res.status(404).json({message: 'Content not found'});
+        }
+    } catch (err) {
+        res.status(500).send({message: err.message});
+    }
+};
+
+// Update a Content with video mode
+exports.updateContentWithVideo = async (req, res) => {
+    if (!req.file) {
+        return res.status(400).send({message: "No video uploaded"});
+    }
+
+    const originalName = path.parse(req.file.originalname).name;
+    const extension = path.extname(req.file.originalname);
+    const truncatedName = originalName.length > 20 ? originalName.substring(0, 20) : originalName;
+    const shortUuid = uuidv4().split('-')[0]; // Shorter UUID
+    const fileName = `${truncatedName}-${shortUuid}${extension}`;
+
+    const params = {
+        Bucket: awsBucketName,
+        Key: `contents/${fileName}`,
+        Body: req.file.buffer,
+        ContentType: req.file.mimetype
+    };
+
+    try {
+        const data = await s3.upload(params).promise();
+        const {content_id} = req.params;
+        const content = await Content.findByPk(content_id);
+        if (content) {
+            const existingTopic = await Topic.findByPk(req.body.topic_id);
+            if (!existingTopic) {
+                return res.status(404).json({message: "Topic not found"});
+            }
+            content.topic_id = req.body.topic_id;
+            content.title = req.body.title;
+            content.mode = 'video';
             content.resource = data.Location;
             await content.save();
             res.status(200).json(content);
