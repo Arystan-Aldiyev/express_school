@@ -5,12 +5,16 @@ const Group = db.group;
 // Create a new Lesson
 exports.createLesson = async (req, res) => {
     try {
-        const {group_id, section_title} = req.body;
+        const {group_id, subject, section_title} = req.body;
         const existingGroup = await Group.findByPk(group_id);
         if (!existingGroup) {
             return res.status(404).json({message: "Group not found"});
         }
-        const newLesson = await Lesson.create({group_id, section_title});
+        const existingLesson = await Lesson.findOne({where: {subject}});
+        if (existingLesson) {
+            return res.status(409).json({message: 'Subject with that name already exists'});
+        }
+        const newLesson = await Lesson.create({group_id, subject, section_title});
         res.status(201).json(newLesson);
     } catch (error) {
         res.status(500).json({error: error.message});
@@ -65,7 +69,7 @@ exports.getLessonsByGroupId = async (req, res) => {
 exports.updateLesson = async (req, res) => {
     try {
         const {lesson_id} = req.params;
-        const {group_id, section_title} = req.body;
+        const {group_id, subject, section_title} = req.body;
         const existingLesson = await Lesson.findByPk(lesson_id);
         if (existingLesson) {
             if (group_id !== undefined) {
@@ -74,6 +78,13 @@ exports.updateLesson = async (req, res) => {
                     return res.status(404).json({message: "Group not found"});
                 }
                 existingLesson.group_id = group_id;
+            }
+            if (subject !== undefined) {
+                const existingSubject = await Lesson.findOne({where: {subject}});
+                if (existingSubject && existingSubject.lesson_id !== lesson_id) {
+                    return res.status(409).json({message: 'Subject with that name already exists'});
+                }
+                existingLesson.subject = subject;
             }
             if (section_title !== undefined) {
                 existingLesson.section_title = section_title;
@@ -96,6 +107,20 @@ exports.deleteLesson = async (req, res) => {
         if (existingLesson) {
             await existingLesson.destroy();
             res.status(204).json({message: 'Lesson deleted'});
+        } else {
+            res.status(404).json({message: 'Lesson not found'});
+        }
+    } catch (error) {
+        res.status(500).json({error: error.message});
+    }
+};
+
+exports.getLessonBySubject = async (req, res) => {
+    try {
+        const {subject} = req.params;
+        const lesson = await Lesson.findOne({where: {subject}});
+        if (lesson) {
+            res.status(200).json(lesson);
         } else {
             res.status(404).json({message: 'Lesson not found'});
         }
