@@ -12,6 +12,11 @@ module.exports = (sequelize, DataTypes) => {
                 key: 'group_id'
             }
         },
+        subject: {
+            type: DataTypes.STRING,
+            allowNull: false,
+            unique: true
+        },
         section_title: {
             type: DataTypes.STRING,
             allowNull: false
