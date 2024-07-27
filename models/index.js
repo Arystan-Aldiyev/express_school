@@ -50,7 +50,7 @@ db.satQuestion = require('./satQuestion.model')(sequelize, Sequelize);
 db.satAnswerOption = require('./satAnswerOption.model')(sequelize, Sequelize);
 db.satAnswer = require('./satAnswer.model')(sequelize, Sequelize);
 db.satAttempt = require('./satAttempt.model')(sequelize, Sequelize);
-
+db.suspendTestAnswer = require('./suspendTest.model')(sequelize, Sequelize)
 
 // Define associations
 db.group.belongsTo(db.user, {foreignKey: 'teacher_id', as: 'teacher'});
@@ -125,5 +125,15 @@ db.satTest.hasMany(db.satAttempt, {foreignKey: 'test_id', as: 'sat_attempts'});
 
 db.satAttempt.belongsTo(db.user, {foreignKey: 'user_id', as: 'user'});
 db.user.hasMany(db.satAttempt, {foreignKey: 'user_id', as: 'sat_attempts'});
+
+db.suspendTestAnswer.belongsTo(db.test, {foreignKey: 'test_id', as: 'Test'});
+db.test.hasMany(db.suspendTestAnswer, {foreignKey: 'test_id', as: 'SuspendTestAnswers'});
+
+db.suspendTestAnswer.belongsTo(db.question, {foreignKey: 'question_id', as: 'Question'});
+db.question.hasMany(db.suspendTestAnswer, {foreignKey: 'question_id', as: 'suspendTestAnswers'});
+
+db.suspendTestAnswer.belongsTo(db.user, {foreignKey: 'user_id', as: 'User'});
+db.user.hasMany(db.suspendTestAnswer, {foreignKey: 'user_id', as: 'SuspendTestAnswers'});
+
 
 module.exports = db;
