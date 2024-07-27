@@ -35,6 +35,7 @@ module.exports = (sequelize, DataTypes) => {
     Question.associate = (models) => {
         Question.belongsTo(models.Test, {foreignKey: 'test_id', as: 'Test'});
         Question.hasMany(models.Answer, {foreignKey: 'question_id', as: 'Answers'});
+        Question.hasMany(models.SuspendTestAnswer, {foreignKey: 'question_id', as: 'SuspendTestAnswers'});
     };
 
     return Question;
