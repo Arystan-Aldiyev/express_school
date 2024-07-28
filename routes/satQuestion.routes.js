@@ -31,6 +31,9 @@ const { upload } = require("../services/amazon.s3.service");
  *         image:
  *           type: string
  *           format: uri
+ *         explanation_image:
+ *           type: string
+ *           format: uri
  *         explanation:
  *           type: string
  *         section:
@@ -41,6 +44,7 @@ const { upload } = require("../services/amazon.s3.service");
  *         question_text: "What is 2+2?"
  *         hint: "Simple math question"
  *         image: "https://example.com/image.png"
+ *         explanation_image: "https://example.com/explanation_image.png"
  *         explanation: "The sum of 2 and 2 is 4"
  *         section: "Math"
  *
@@ -76,6 +80,9 @@ const { upload } = require("../services/amazon.s3.service");
  *               image:
  *                 type: string
  *                 format: binary
+ *               explanation_image:
+ *                 type: string
+ *                 format: binary
  *               explanation:
  *                 type: string
  *               section:
@@ -90,7 +97,7 @@ const { upload } = require("../services/amazon.s3.service");
  *       500:
  *         description: Server error
  */
-router.post('/satQuestions', [verifyToken, verifyIsAdmin || verifyIsTeacher], upload.single('image'), satQuestionController.createSatQuestion);
+router.post('/satQuestions', [verifyToken, verifyIsAdmin || verifyIsTeacher], upload.fields([{ name: 'image', maxCount: 1 }, { name: 'explanation_image', maxCount: 1 }]), satQuestionController.createSatQuestion);
 
 /**
  * @swagger
@@ -238,6 +245,9 @@ router.get('/satQuestions/:id', [verifyToken], satQuestionController.findOneQues
  *               image:
  *                 type: string
  *                 format: binary
+ *               explanation_image:
+ *                 type: string
+ *                 format: binary
  *               explanation:
  *                 type: string
  *               section:
@@ -254,7 +264,7 @@ router.get('/satQuestions/:id', [verifyToken], satQuestionController.findOneQues
  *       500:
  *         description: Server error
  */
-router.put('/satQuestions/:id', [verifyToken, verifyIsAdmin || verifyIsTeacher], upload.single('image'), satQuestionController.updateQuestion);
+router.put('/satQuestions/:id', [verifyToken, verifyIsAdmin || verifyIsTeacher], upload.fields([{ name: 'image', maxCount: 1 }, { name: 'explanation_image', maxCount: 1 }]), satQuestionController.updateQuestion);
 
 /**
  * @swagger
@@ -287,6 +297,9 @@ router.put('/satQuestions/:id', [verifyToken, verifyIsAdmin || verifyIsTeacher],
  *               image:
  *                 type: string
  *                 format: binary
+ *               explanation_image:
+ *                 type: string
+ *                 format: binary
  *               explanation:
  *                 type: string
  *               section:
@@ -303,7 +316,7 @@ router.put('/satQuestions/:id', [verifyToken, verifyIsAdmin || verifyIsTeacher],
  *       500:
  *         description: Server error
  */
-router.patch('/satQuestions/:id', [verifyToken, verifyIsAdmin || verifyIsTeacher], upload.single('image'), satQuestionController.patchQuestion);
+router.patch('/satQuestions/:id', [verifyToken, verifyIsAdmin || verifyIsTeacher], upload.fields([{ name: 'image', maxCount: 1 }, { name: 'explanation_image', maxCount: 1 }]), satQuestionController.patchQuestion);
 
 /**
  * @swagger

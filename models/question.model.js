@@ -27,6 +27,10 @@ module.exports = (sequelize, DataTypes) => {
         explanation: {
             type: DataTypes.STRING,
             allowNull: true
+        },
+        explanation_image: {
+            type: DataTypes.STRING,
+            allowNull: true,
         }
     }, {
         tableName: 'questions',
