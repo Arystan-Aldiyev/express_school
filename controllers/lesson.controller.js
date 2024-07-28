@@ -10,10 +10,6 @@ exports.createLesson = async (req, res) => {
         if (!existingGroup) {
             return res.status(404).json({message: "Group not found"});
         }
-        const existingLesson = await Lesson.findOne({where: {subject}});
-        if (existingLesson) {
-            return res.status(409).json({message: 'Subject with that name already exists'});
-        }
         const newLesson = await Lesson.create({group_id, subject, section_title});
         res.status(201).json(newLesson);
     } catch (error) {
@@ -115,14 +111,14 @@ exports.deleteLesson = async (req, res) => {
     }
 };
 
-exports.getLessonBySubject = async (req, res) => {
+exports.getLessonsBySubject = async (req, res) => {
     try {
         const {subject} = req.params;
-        const lesson = await Lesson.findOne({where: {subject}});
-        if (lesson) {
-            res.status(200).json(lesson);
+        const lessons = await Lesson.findAll({where: {subject}});
+        if (lessons.length > 0) {
+            res.status(200).json(lessons);
         } else {
-            res.status(404).json({message: 'Lesson not found'});
+            res.status(404).json({message: 'Lessons not found'});
         }
     } catch (error) {
         res.status(500).json({error: error.message});
