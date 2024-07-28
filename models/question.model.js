@@ -25,7 +25,7 @@ module.exports = (sequelize, DataTypes) => {
             allowNull: true
         },
         explanation: {
-            type: DataTypes.STRING,
+            type: DataTypes.TEXT,
             allowNull: true
         },
         explanation_image: {

@@ -6,7 +6,7 @@ module.exports = (sequelize, DataTypes) => {
             autoIncrement: true,
         },
         question_text: {
-            type: DataTypes.STRING,
+            type: DataTypes.TEXT,
             allowNull: false,
         },
         section: {
@@ -22,7 +22,7 @@ module.exports = (sequelize, DataTypes) => {
             allowNull: true,
         },
         explanation: {
-            type: DataTypes.STRING,
+            type: DataTypes.TEXT,
             allowNull: true,
         },
         explanation_image: {
