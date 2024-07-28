@@ -7,8 +7,7 @@ module.exports = (sequelize, DataTypes) => {
         },
         subject: {
             type: DataTypes.STRING,
-            unique: true,
-            allowNull: false,
+            allowNull: false
         },
         group_id: {
             type: DataTypes.INTEGER,

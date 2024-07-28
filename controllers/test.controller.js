@@ -91,7 +91,7 @@ exports.findAllTestByGroupId = async (req, res) => {
     }
 };
 
-exports.getTestBySubject = async (req, res) => {
+exports.getTestsBySubject = async (req, res) => {
     const subject = req.params.subject;
     if (!subject) {
         return res.status(400).send({
@@ -101,7 +101,13 @@ exports.getTestBySubject = async (req, res) => {
 
     try {
         const tests = await Test.findAll({where: {subject}});
-        res.send(tests);
+        if (tests.length > 0) {
+            res.status(200).json(tests);
+        } else {
+            res.status(404).send({
+                message: "No tests found for this subject"
+            });
+        }
     } catch (err) {
         console.error('Error retrieving tests by subject:', err);
         res.status(500).send({
@@ -145,7 +151,7 @@ exports.findTestWithDetails = async (req, res) => {
                         {
                             model: AnswerOption,
                             as: 'answerOptions',
-                            attributes: {exclude: ['is_correct']}
+                            attributes: {exclude: ['is_correct', 'explanation_image']}
                         }
                     ]
                 }
@@ -317,6 +323,7 @@ exports.suspendTest = async (req, res) => {
     const userId = req.userId;
 
     try {
+        // Find the test with associated questions and answer options
         const test = await Test.findOne({
             where: {test_id: testId},
             include: [{
@@ -335,6 +342,15 @@ exports.suspendTest = async (req, res) => {
 
         const suspendTime = new Date();
 
+        // Delete any existing suspended answers for this user and test
+        await SuspendTestAnswer.destroy({
+            where: {
+                user_id: userId,
+                test_id: testId
+            }
+        });
+
+        // Save the new suspend answers
         for (const answer of answers) {
             const questionId = answer.question_id;
             const userAnswer = answer.answer;
