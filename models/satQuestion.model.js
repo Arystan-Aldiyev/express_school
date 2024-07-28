@@ -25,6 +25,10 @@ module.exports = (sequelize, DataTypes) => {
             type: DataTypes.STRING,
             allowNull: true,
         },
+        explanation_image: {
+            type: DataTypes.STRING,
+            allowNull: true,
+        },
         test_id: {
             type: DataTypes.INTEGER,
             references: {
