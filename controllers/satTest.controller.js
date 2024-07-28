@@ -50,7 +50,7 @@ exports.getSatTestWithDetails = async (req, res) => {
                         {
                             model: SatAnswerOption,
                             as: 'sat_answer_options',
-                            attributes: {exclude: ['is_correct']}
+                            attributes: {exclude: ['is_correct', 'explanation_image']}
                         }
                     ]
                 }

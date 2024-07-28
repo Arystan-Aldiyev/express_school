@@ -30,6 +30,9 @@ const {upload} = require("../services/amazon.s3.service");
  *         image:
  *           type: string
  *           format: uri
+ *         explanation_image:
+ *           type: string
+ *           format: uri
  *         explanation:
  *           type: string
  *       example:
@@ -37,6 +40,7 @@ const {upload} = require("../services/amazon.s3.service");
  *         question_text: "<p>If (a, b) is a solution to the following system of inequalities, which of the following represents the minimum value of b?</p><p><code>y &gt; 2(x-3) + 5</code><br><code>y &lt; x + 3</code></p>"
  *         hint: "Think about the intersection of the two inequalities."
  *         image: "https://your-cloud-storage-service.com/path-to-your-image.png"
+ *         explanation_image: "https://your-cloud-storage-service.com/path-to-your-explanation-image.png"
  *         explanation: "The solution involves finding the intersection of the given inequalities."
  * security:
  *   - bearerAuth: []
@@ -117,6 +121,9 @@ router.get('/questions/:id', [verifyToken, verifyIsAdmin || verifyIsTeacher], qu
  *               image:
  *                 type: string
  *                 format: binary
+ *               explanation_image:
+ *                 type: string
+ *                 format: binary
  *               explanation:
  *                 type: string
  *     responses:
@@ -127,7 +134,10 @@ router.get('/questions/:id', [verifyToken, verifyIsAdmin || verifyIsTeacher], qu
  *             schema:
  *               $ref: '#/components/schemas/Question'
  */
-router.post('/questions', [verifyToken, verifyIsAdmin || verifyIsTeacher], upload.single('image'), questionController.createQuestion);
+router.post('/questions', [verifyToken, verifyIsAdmin || verifyIsTeacher], upload.fields([{
+    name: 'image',
+    maxCount: 1
+}, {name: 'explanation_image', maxCount: 1}]), questionController.createQuestion);
 
 /**
  * @swagger
@@ -160,6 +170,9 @@ router.post('/questions', [verifyToken, verifyIsAdmin || verifyIsTeacher], uploa
  *               image:
  *                 type: string
  *                 format: binary
+ *               explanation_image:
+ *                 type: string
+ *                 format: binary
  *               explanation:
  *                 type: string
  *     responses:
@@ -172,7 +185,10 @@ router.post('/questions', [verifyToken, verifyIsAdmin || verifyIsTeacher], uploa
  *       404:
  *         description: Question not found
  */
-router.put('/questions/:id', [verifyToken, verifyIsAdmin || verifyIsTeacher], upload.single('image'), questionController.updateQuestion);
+router.put('/questions/:id', [verifyToken, verifyIsAdmin || verifyIsTeacher], upload.fields([{
+    name: 'image',
+    maxCount: 1
+}, {name: 'explanation_image', maxCount: 1}]), questionController.updateQuestion);
 
 /**
  * @swagger
@@ -205,6 +221,9 @@ router.put('/questions/:id', [verifyToken, verifyIsAdmin || verifyIsTeacher], up
  *               image:
  *                 type: string
  *                 format: binary
+ *               explanation_image:
+ *                 type: string
+ *                 format: binary
  *               explanation:
  *                 type: string
  *     responses:
@@ -217,7 +236,10 @@ router.put('/questions/:id', [verifyToken, verifyIsAdmin || verifyIsTeacher], up
  *       404:
  *         description: Question not found
  */
-router.patch('/questions/:id', [verifyToken, verifyIsAdmin || verifyIsTeacher], upload.single('image'), questionController.patchQuestion);
+router.patch('/questions/:id', [verifyToken, verifyIsAdmin || verifyIsTeacher], upload.fields([{
+    name: 'image',
+    maxCount: 1
+}, {name: 'explanation_image', maxCount: 1}]), questionController.patchQuestion);
 
 /**
  * @swagger
