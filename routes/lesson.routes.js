@@ -145,7 +145,7 @@ router.get('/lessons/group/:group_id', [verifyToken], lessonController.getLesson
  * @swagger
  * /api/lessons/subject/{subject}:
  *   get:
- *     summary: Retrieve a lesson by subject
+ *     summary: Retrieve lessons by subject
  *     tags: [Lessons]
  *     security:
  *       - bearerAuth: []
@@ -155,19 +155,38 @@ router.get('/lessons/group/:group_id', [verifyToken], lessonController.getLesson
  *         schema:
  *           type: string
  *         required: true
- *         description: The lesson subject
+ *         description: The lesson subject to retrieve
  *     responses:
  *       200:
- *         description: A lesson with the specified subject
+ *         description: A list of lessons with the specified subject
  *         content:
  *           application/json:
  *             schema:
- *               $ref: '#/components/schemas/Lesson'
+ *               type: array
+ *               items:
+ *                 $ref: '#/components/schemas/Lesson'
  *       404:
- *         description: Lesson not found
+ *         description: Lessons not found
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 message:
+ *                   type: string
+ *                   example: Lessons not found
+ *       500:
+ *         description: Internal server error
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 error:
+ *                   type: string
+ *                   example: An error occurred while retrieving the lessons
  */
-router.get('/lessons/subject/:subject', [verifyToken], lessonController.getLessonBySubject);
-
+router.get('/lessons/subject/:subject', [verifyToken], lessonController.getLessonsBySubject);
 
 /**
  * @swagger
