@@ -5,28 +5,13 @@ module.exports = (sequelize, DataTypes) => {
             primaryKey: true,
             autoIncrement: true,
         },
-        extend_time_math: {
-            type: DataTypes.INTEGER,
-            allowNull: true,
-        },
-        extend_time_verbal: {
-            type: DataTypes.INTEGER,
-            allowNull: true,
-        },
-        extend_time_break: {
-            type: DataTypes.INTEGER,
-            allowNull: true,
-        },
-        status: {
-            type: DataTypes.STRING,
-            defaultValue: 'in_progress',
-        },
         user_id: {
             type: DataTypes.INTEGER,
             references: {
                 model: 'users',
                 key: 'user_id',
             },
+            onDelete: 'CASCADE'
         },
         test_id: {
             type: DataTypes.INTEGER,
@@ -34,6 +19,7 @@ module.exports = (sequelize, DataTypes) => {
                 model: 'sat_tests',
                 key: 'sat_test_id',
             },
+            onDelete: 'CASCADE'
         },
         verbal_score: {
             type: DataTypes.INTEGER,
@@ -53,9 +39,9 @@ module.exports = (sequelize, DataTypes) => {
     });
 
     SatAttempt.associate = models => {
-        SatAttempt.belongsTo(models.User, {foreignKey: 'user_id', as: 'user'});
-        SatAttempt.belongsTo(models.SatTest, {foreignKey: 'test_id', as: 'sat_test'});
-        SatAttempt.hasMany(models.SatAnswer, {foreignKey: 'sat_attempt_id', as: 'sat_answers'});
+        SatAttempt.belongsTo(models.User, {foreignKey: 'user_id', as: 'user', onDelete: 'CASCADE'});
+        SatAttempt.belongsTo(models.SatTest, {foreignKey: 'test_id', as: 'sat_test', onDelete: 'CASCADE'});
+        SatAttempt.hasMany(models.SatAnswer, {foreignKey: 'sat_attempt_id', as: 'sat_answers', onDelete: 'CASCADE'});
     };
 
     return SatAttempt;

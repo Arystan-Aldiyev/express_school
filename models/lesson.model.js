@@ -10,7 +10,8 @@ module.exports = (sequelize, DataTypes) => {
             references: {
                 model: 'groups',
                 key: 'group_id'
-            }
+            },
+            onDelete: 'CASCADE'
         },
         subject: {
             type: DataTypes.STRING,

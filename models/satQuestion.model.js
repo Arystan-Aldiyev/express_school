@@ -35,6 +35,7 @@ module.exports = (sequelize, DataTypes) => {
                 model: 'sat_tests',
                 key: 'sat_test_id',
             },
+            onDelete: 'CASCADE'
         },
     }, {
         tableName: 'sat_questions',
@@ -42,9 +43,13 @@ module.exports = (sequelize, DataTypes) => {
     });
 
     SatQuestion.associate = models => {
-        SatQuestion.belongsTo(models.SatTest, {foreignKey: 'test_id', as: 'sat_test'});
-        SatQuestion.hasMany(models.SatAnswerOption, {foreignKey: 'question_id', as: 'sat_answer_options'});
-        SatQuestion.hasMany(models.SatAnswer, {foreignKey: 'sat_question_id', as: 'sat_answers'});
+        SatQuestion.belongsTo(models.SatTest, {foreignKey: 'test_id', as: 'sat_test', onDelete: 'CASCADE'});
+        SatQuestion.hasMany(models.SatAnswerOption, {
+            foreignKey: 'question_id',
+            as: 'sat_answer_options',
+            onDelete: 'CASCADE'
+        });
+        SatQuestion.hasMany(models.SatAnswer, {foreignKey: 'sat_question_id', as: 'sat_answers', onDelete: 'CASCADE'});
     };
 
     return SatQuestion;

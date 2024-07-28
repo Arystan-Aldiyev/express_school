@@ -1,4 +1,3 @@
-// models/calendar.model.js
 module.exports = (sequelize, DataTypes) => {
     const Calendar = sequelize.define('Calendar', {
         schedule_id: {
@@ -12,7 +11,8 @@ module.exports = (sequelize, DataTypes) => {
                 model: 'groups',
                 key: 'group_id'
             },
-            allowNull: false
+            allowNull: false,
+            onDelete: 'CASCADE'
         },
         title: {
             type: DataTypes.TEXT,
@@ -38,7 +38,8 @@ module.exports = (sequelize, DataTypes) => {
     Calendar.associate = models => {
         Calendar.belongsTo(models.Group, {
             foreignKey: 'group_id',
-            as: 'group'
+            as: 'group',
+            onDelete: 'CASCADE'
         });
     };
 

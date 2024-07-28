@@ -14,7 +14,8 @@ module.exports = (sequelize, DataTypes) => {
             references: {
                 model: 'groups',
                 key: 'group_id'
-            }
+            },
+            onDelete: 'CASCADE'
         },
         name: {
             type: DataTypes.STRING,
@@ -33,10 +34,12 @@ module.exports = (sequelize, DataTypes) => {
         tableName: 'tests',
         timestamps: false
     });
+
     Test.associate = (models) => {
-        Test.hasMany(models.Question, {foreignKey: 'test_id', as: 'questions'});
-        Test.hasMany(models.Attempt, {foreignKey: 'test_id'});
-        Test.hasMany(models.SuspendTestAnswer, {foreignKey: 'test_id', as: 'suspendTestAnswers'});
+        Test.hasMany(models.Question, {foreignKey: 'test_id', as: 'questions', onDelete: 'CASCADE'});
+        Test.hasMany(models.Attempt, {foreignKey: 'test_id', onDelete: 'CASCADE'});
+        Test.hasMany(models.SuspendTestAnswer, {foreignKey: 'test_id', as: 'suspendTestAnswers', onDelete: 'CASCADE'});
     };
+
     return Test;
 };

@@ -20,6 +20,7 @@ module.exports = (sequelize, DataTypes) => {
                 key: 'sat_attempt_id',
             },
             allowNull: false,
+            onDelete: 'CASCADE'
         },
         sat_question_id: {
             type: DataTypes.INTEGER,
@@ -27,6 +28,7 @@ module.exports = (sequelize, DataTypes) => {
                 model: 'sat_questions',
                 key: 'sat_question_id',
             },
+            onDelete: 'CASCADE',
             allowNull: false,
         },
         submitted_at: {
@@ -39,9 +41,9 @@ module.exports = (sequelize, DataTypes) => {
     });
 
     SatAnswer.associate = models => {
-        SatAnswer.belongsTo(models.SatAttempt, {foreignKey: 'sat_attempt_id', as: 'sat_attempt'});
-        SatAnswer.belongsTo(models.SatQuestion, {foreignKey: 'sat_question_id', as: 'sat_question'});
-        SatAnswer.belongsTo(models.User, {foreignKey: 'user_id', as: 'user'});
+        SatAnswer.belongsTo(models.SatAttempt, { foreignKey: 'sat_attempt_id', as: 'sat_attempt', onDelete: 'CASCADE' });
+        SatAnswer.belongsTo(models.SatQuestion, { foreignKey: 'sat_question_id', as: 'sat_question', onDelete: 'CASCADE' });
+        SatAnswer.belongsTo(models.User, { foreignKey: 'user_id', as: 'user', onDelete: 'CASCADE' });
     };
 
     return SatAnswer;

@@ -53,87 +53,83 @@ db.satAttempt = require('./satAttempt.model')(sequelize, Sequelize);
 db.suspendTestAnswer = require('./suspendTest.model')(sequelize, Sequelize)
 
 // Define associations
-db.group.belongsTo(db.user, {foreignKey: 'teacher_id', as: 'teacher'});
+db.group.belongsTo(db.user, {foreignKey: 'teacher_id', as: 'teacher', onDelete: 'SET NULL'});
 db.user.hasMany(db.group, {foreignKey: 'teacher_id', as: 'groups'});
 
+db.lesson.hasMany(db.topic, {foreignKey: 'lesson_id', onDelete: 'CASCADE'});
+db.topic.belongsTo(db.lesson, {foreignKey: 'lesson_id'});
 
-db.lesson.hasMany(db.topic, {foreignKey: 'lesson_id'})
-db.topic.belongsTo(db.lesson, {foreignKey: 'lesson_id'})
+db.topic.hasMany(db.content, {foreignKey: 'topic_id', onDelete: 'CASCADE'});
+db.content.belongsTo(db.topic, {foreignKey: 'topic_id'});
 
-db.topic.hasMany(db.content, {foreignKey: 'topic_id'})
-db.content.belongsTo(db.topic, {foreignKey: 'topic_id'})
+db.groupMembership.belongsTo(db.group, {foreignKey: 'group_id', onDelete: 'CASCADE'});
+db.groupMembership.belongsTo(db.user, {foreignKey: 'user_id', onDelete: 'CASCADE'});
+db.group.hasMany(db.groupMembership, {foreignKey: 'group_id', onDelete: 'CASCADE'});
+db.user.hasMany(db.groupMembership, {foreignKey: 'user_id', onDelete: 'CASCADE'});
 
-db.groupMembership.belongsTo(db.group, {foreignKey: 'group_id'});
-db.groupMembership.belongsTo(db.user, {foreignKey: 'user_id'});
-db.group.hasMany(db.groupMembership, {foreignKey: 'group_id'});
-db.user.hasMany(db.groupMembership, {foreignKey: 'user_id'});
+db.test.belongsTo(db.group, {foreignKey: 'group_id', onDelete: 'CASCADE'});
+db.group.hasMany(db.test, {foreignKey: 'group_id', onDelete: 'CASCADE'});
 
-db.test.belongsTo(db.group, {foreignKey: 'group_id'});
-db.group.hasMany(db.test, {foreignKey: 'group_id'});
+db.question.belongsTo(db.test, {foreignKey: 'test_id', as: 'Test', onDelete: 'CASCADE'});
+db.test.hasMany(db.question, {foreignKey: 'test_id', as: 'questions', onDelete: 'CASCADE'});
 
-db.question.belongsTo(db.test, {foreignKey: 'test_id', as: 'Test'});
-db.test.hasMany(db.question, {foreignKey: 'test_id', as: 'questions'});
+db.answerOption.belongsTo(db.question, {foreignKey: 'question_id', as: 'Question', onDelete: 'CASCADE'});
+db.question.hasMany(db.answerOption, {foreignKey: 'question_id', as: 'answerOptions', onDelete: 'CASCADE'});
 
-db.answerOption.belongsTo(db.question, {foreignKey: 'question_id', as: 'Question'});
-db.question.hasMany(db.answerOption, {foreignKey: 'question_id', as: 'answerOptions'});
+db.attempt.hasMany(db.answer, {foreignKey: 'attempt_id', onDelete: 'CASCADE'});
+db.answer.belongsTo(db.attempt, {foreignKey: 'attempt_id', onDelete: 'CASCADE'});
 
-db.attempt.hasMany(db.answer, {foreignKey: 'attempt_id'});
-db.answer.belongsTo(db.attempt, {foreignKey: 'attempt_id'});
+db.attempt.belongsTo(db.test, {foreignKey: 'test_id', onDelete: 'CASCADE'});
+db.test.hasMany(db.attempt, {foreignKey: 'test_id', onDelete: 'CASCADE'});
+db.attempt.belongsTo(db.user, {foreignKey: 'user_id', onDelete: 'CASCADE'});
+db.user.hasMany(db.attempt, {foreignKey: 'user_id', onDelete: 'CASCADE'});
 
-db.attempt.belongsTo(db.test, {foreignKey: 'test_id'});
-db.test.hasMany(db.attempt, {foreignKey: 'test_id'});
-db.attempt.belongsTo(db.user, {foreignKey: 'user_id'});
-db.user.hasMany(db.attempt, {foreignKey: 'user_id'});
+db.answer.belongsTo(db.question, {foreignKey: 'question_id', as: 'Question', onDelete: 'CASCADE'});
+db.answer.belongsTo(db.user, {foreignKey: 'user_id', onDelete: 'CASCADE'});
+db.question.hasMany(db.answer, {foreignKey: 'question_id', as: 'Answers', onDelete: 'CASCADE'});
+db.user.hasMany(db.answer, {foreignKey: 'user_id', onDelete: 'CASCADE'});
 
-db.answer.belongsTo(db.question, {foreignKey: 'question_id', as: 'Question'});
-db.answer.belongsTo(db.user, {foreignKey: 'user_id'});
-db.question.hasMany(db.answer, {foreignKey: 'question_id', as: 'Answers'});
-db.user.hasMany(db.answer, {foreignKey: 'user_id'});
+db.notification.belongsTo(db.user, {foreignKey: 'user_id', onDelete: 'SET NULL'});
+db.user.hasMany(db.notification, {foreignKey: 'user_id', onDelete: 'SET NULL'});
 
+db.post.belongsTo(db.group, {foreignKey: 'group_id', onDelete: 'CASCADE'});
+db.post.belongsTo(db.user, {foreignKey: 'author_id', onDelete: 'CASCADE'});
+db.group.hasMany(db.post, {foreignKey: 'group_id', onDelete: 'CASCADE'});
+db.user.hasMany(db.post, {foreignKey: 'author_id', onDelete: 'CASCADE'});
 
-db.notification.belongsTo(db.user, {foreignKey: 'user_id'});
-db.user.hasMany(db.notification, {foreignKey: 'user_id'});
+db.message.belongsTo(db.user, {foreignKey: 'user_id', onDelete: 'SET NULL'});
+db.message.belongsTo(db.user, {foreignKey: 'sender_id', onDelete: 'SET NULL'});
+db.user.hasMany(db.message, {as: 'sentMessages', foreignKey: 'sender_id', onDelete: 'SET NULL'});
+db.user.hasMany(db.message, {as: 'receivedMessages', foreignKey: 'user_id', onDelete: 'SET NULL'});
 
-db.post.belongsTo(db.group, {foreignKey: 'group_id'});
-db.post.belongsTo(db.user, {foreignKey: 'author_id'});
-db.group.hasMany(db.post, {foreignKey: 'group_id'});
-db.user.hasMany(db.post, {foreignKey: 'author_id'});
+db.dashboardAnnouncement.belongsTo(db.user, {foreignKey: 'author_id', onDelete: 'CASCADE'});
+db.user.hasMany(db.dashboardAnnouncement, {foreignKey: 'author_id', onDelete: 'CASCADE'});
 
-db.message.belongsTo(db.user, {foreignKey: 'user_id'});
-db.message.belongsTo(db.user, {foreignKey: 'sender_id'});
-db.user.hasMany(db.message, {as: 'sentMessages', foreignKey: 'sender_id'});
-db.user.hasMany(db.message, {as: 'receivedMessages', foreignKey: 'user_id'});
+db.satTest.hasMany(db.satQuestion, {foreignKey: 'test_id', as: 'sat_questions', onDelete: 'CASCADE'});
+db.satQuestion.belongsTo(db.satTest, {foreignKey: 'test_id', as: 'sat_test', onDelete: 'CASCADE'});
 
-db.dashboardAnnouncement.belongsTo(db.user, {foreignKey: 'author_id'});
-db.user.hasMany(db.dashboardAnnouncement, {foreignKey: 'author_id'});
+db.satQuestion.hasMany(db.satAnswerOption, {foreignKey: 'question_id', as: 'sat_answer_options', onDelete: 'CASCADE'});
+db.satAnswerOption.belongsTo(db.satQuestion, {foreignKey: 'question_id', as: 'sat_question', onDelete: 'CASCADE'});
 
-// Define associations
-db.satTest.hasMany(db.satQuestion, {foreignKey: 'test_id', as: 'sat_questions'});
-db.satQuestion.belongsTo(db.satTest, {foreignKey: 'test_id', as: 'sat_test'});
+db.satAttempt.hasMany(db.satAnswer, {foreignKey: 'sat_attempt_id', as: 'sat_answers', onDelete: 'CASCADE'});
+db.satAnswer.belongsTo(db.satAttempt, {foreignKey: 'sat_attempt_id', as: 'sat_attempt', onDelete: 'CASCADE'});
 
-db.satQuestion.hasMany(db.satAnswerOption, {foreignKey: 'question_id', as: 'sat_answer_options'});
-db.satAnswerOption.belongsTo(db.satQuestion, {foreignKey: 'question_id', as: 'sat_question'});
+db.satAnswer.belongsTo(db.satQuestion, {foreignKey: 'sat_question_id', as: 'sat_question', onDelete: 'CASCADE'});
+db.satQuestion.hasMany(db.satAnswer, {foreignKey: 'sat_question_id', as: 'sat_answers', onDelete: 'CASCADE'});
 
-db.satAttempt.hasMany(db.satAnswer, {foreignKey: 'sat_attempt_id', as: 'sat_answers'});
-db.satAnswer.belongsTo(db.satAttempt, {foreignKey: 'sat_attempt_id', as: 'sat_attempt'});
+db.satAttempt.belongsTo(db.satTest, {foreignKey: 'test_id', as: 'sat_test', onDelete: 'CASCADE'});
+db.satTest.hasMany(db.satAttempt, {foreignKey: 'test_id', as: 'sat_attempts', onDelete: 'CASCADE'});
 
-db.satAnswer.belongsTo(db.satQuestion, {foreignKey: 'sat_question_id', as: 'sat_question'});
-db.satQuestion.hasMany(db.satAnswer, {foreignKey: 'sat_question_id', as: 'sat_answers'});
+db.satAttempt.belongsTo(db.user, {foreignKey: 'user_id', as: 'user', onDelete: 'CASCADE'});
+db.user.hasMany(db.satAttempt, {foreignKey: 'user_id', as: 'sat_attempts', onDelete: 'CASCADE'});
 
-db.satAttempt.belongsTo(db.satTest, {foreignKey: 'test_id', as: 'sat_test'});
-db.satTest.hasMany(db.satAttempt, {foreignKey: 'test_id', as: 'sat_attempts'});
+db.suspendTestAnswer.belongsTo(db.test, {foreignKey: 'test_id', as: 'Test', onDelete: 'CASCADE'});
+db.test.hasMany(db.suspendTestAnswer, {foreignKey: 'test_id', as: 'SuspendTestAnswers', onDelete: 'CASCADE'});
 
-db.satAttempt.belongsTo(db.user, {foreignKey: 'user_id', as: 'user'});
-db.user.hasMany(db.satAttempt, {foreignKey: 'user_id', as: 'sat_attempts'});
+db.suspendTestAnswer.belongsTo(db.question, {foreignKey: 'question_id', as: 'Question', onDelete: 'CASCADE'});
+db.question.hasMany(db.suspendTestAnswer, {foreignKey: 'question_id', as: 'suspendTestAnswers', onDelete: 'CASCADE'});
 
-db.suspendTestAnswer.belongsTo(db.test, {foreignKey: 'test_id', as: 'Test'});
-db.test.hasMany(db.suspendTestAnswer, {foreignKey: 'test_id', as: 'SuspendTestAnswers'});
-
-db.suspendTestAnswer.belongsTo(db.question, {foreignKey: 'question_id', as: 'Question'});
-db.question.hasMany(db.suspendTestAnswer, {foreignKey: 'question_id', as: 'suspendTestAnswers'});
-
-db.suspendTestAnswer.belongsTo(db.user, {foreignKey: 'user_id', as: 'User'});
-db.user.hasMany(db.suspendTestAnswer, {foreignKey: 'user_id', as: 'SuspendTestAnswers'});
-
+db.suspendTestAnswer.belongsTo(db.user, {foreignKey: 'user_id', as: 'User', onDelete: 'CASCADE'});
+db.user.hasMany(db.suspendTestAnswer, {foreignKey: 'user_id', as: 'SuspendTestAnswers', onDelete: 'CASCADE'});
 
 module.exports = db;

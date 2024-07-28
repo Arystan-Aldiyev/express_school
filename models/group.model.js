@@ -14,7 +14,8 @@ module.exports = (sequelize, DataTypes) => {
             references: {
                 model: 'users',
                 key: 'user_id'
-            }
+            },
+            onDelete: 'SET NULL'
         },
         invite_code: {
             type: DataTypes.STRING,

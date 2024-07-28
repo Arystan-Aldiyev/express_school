@@ -201,19 +201,15 @@ exports.deleteTest = async (req, res) => {
     const id = req.params.id;
 
     try {
-        const num = await Test.destroy({
-            where: {test_id: id}
-        });
-        if (num == 1) {
-            res.send({
-                message: "Test was deleted successfully!"
-            });
-        } else {
-            res.send({
-                message: `Cannot delete Test with id=${id}. Maybe Test was not found!`
-            });
+        const test = await Test.findByPk(id);
+        if (!test) {
+            return res.status(404).json({error: 'Test not found'});
         }
+
+        await test.destroy();
+        res.status(200).json({message: 'Test deleted'});
     } catch (err) {
+        console.error(err)
         res.status(500).send({
             message: "Could not delete Test with id=" + id
         });
@@ -397,7 +393,7 @@ exports.continueSuspendTest = async (req, res) => {
                 {
                     model: Question,
                     as: 'questions',
-                    attributes: {exclude: ['explanation']},
+                    attributes: {exclude: ['explanation', 'explanation_image']},
                     include: [
                         {
                             model: AnswerOption,

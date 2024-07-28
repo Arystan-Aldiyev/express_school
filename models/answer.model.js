@@ -10,14 +10,16 @@ module.exports = (sequelize, DataTypes) => {
             references: {
                 model: 'questions',
                 key: 'question_id'
-            }
+            },
+            onDelete: 'CASCADE'
         },
         user_id: {
             type: DataTypes.INTEGER,
             references: {
                 model: 'users',
                 key: 'user_id'
-            }
+            },
+            onDelete: 'CASCADE'
         },
         student_answer: {
             type: DataTypes.STRING
@@ -27,7 +29,8 @@ module.exports = (sequelize, DataTypes) => {
             references: {
                 model: 'attempts',
                 key: 'attempt_id'
-            }
+            },
+            onDelete: 'CASCADE'
         },
         submitted_at: {
             type: DataTypes.DATE,
@@ -37,11 +40,12 @@ module.exports = (sequelize, DataTypes) => {
         tableName: 'answers',
         timestamps: false
     });
+
     Answer.associate = (models) => {
-        Answer.belongsTo(models.Question, {foreignKey: 'question_id', as: 'Question'});
-        Answer.belongsTo(models.User, {foreignKey: 'user_id'});
+        Answer.belongsTo(models.Question, {foreignKey: 'question_id', as: 'Question', onDelete: 'CASCADE'});
+        Answer.belongsTo(models.User, {foreignKey: 'user_id', onDelete: 'CASCADE'});
+        Answer.belongsTo(models.Attempt, {foreignKey: 'attempt_id', onDelete: 'CASCADE'});
     };
 
     return Answer;
 };
-  

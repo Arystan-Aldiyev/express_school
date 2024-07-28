@@ -10,7 +10,8 @@ module.exports = (sequelize, DataTypes) => {
             references: {
                 model: 'tests',
                 key: 'test_id'
-            }
+            },
+            onDelete: 'CASCADE'
         },
         question_text: {
             type: DataTypes.TEXT,
@@ -37,9 +38,13 @@ module.exports = (sequelize, DataTypes) => {
         timestamps: false
     });
     Question.associate = (models) => {
-        Question.belongsTo(models.Test, {foreignKey: 'test_id', as: 'Test'});
-        Question.hasMany(models.Answer, {foreignKey: 'question_id', as: 'Answers'});
-        Question.hasMany(models.SuspendTestAnswer, {foreignKey: 'question_id', as: 'SuspendTestAnswers'});
+        Question.belongsTo(models.Test, {foreignKey: 'test_id', as: 'Test', onDelete: 'CASCADE'});
+        Question.hasMany(models.Answer, {foreignKey: 'question_id', as: 'Answers', onDelete: 'CASCADE'});
+        Question.hasMany(models.SuspendTestAnswer, {
+            foreignKey: 'question_id',
+            as: 'SuspendTestAnswers',
+            onDelete: 'CASCADE'
+        });
     };
 
     return Question;

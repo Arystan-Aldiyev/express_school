@@ -10,14 +10,16 @@ module.exports = (sequelize, DataTypes) => {
             references: {
                 model: 'tests',
                 key: 'test_id'
-            }
+            },
+            onDelete: 'CASCADE'
         },
         user_id: {
             type: DataTypes.INTEGER,
             references: {
                 model: 'users',
                 key: 'user_id'
-            }
+            },
+            onDelete: 'CASCADE'
         },
         start_time: {
             type: DataTypes.DATE
@@ -34,11 +36,10 @@ module.exports = (sequelize, DataTypes) => {
     });
 
     Attempt.associate = (models) => {
-        Attempt.belongsTo(models.Test, {foreignKey: 'test_id', as: 'Test'});
-        Attempt.hasMany(models.Answer, {foreignKey: 'attempt_id'});
-        Attempt.belongsTo(models.User, {foreignKey: 'user_id'});
+        Attempt.belongsTo(models.Test, {foreignKey: 'test_id', as: 'Test', onDelete: 'CASCADE'});
+        Attempt.hasMany(models.Answer, {foreignKey: 'attempt_id', onDelete: 'CASCADE'});
+        Attempt.belongsTo(models.User, {foreignKey: 'user_id', onDelete: 'CASCADE'});
     };
 
     return Attempt;
 };
-  
