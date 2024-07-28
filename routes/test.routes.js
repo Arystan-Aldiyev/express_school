@@ -439,7 +439,7 @@ router.get('/tests/group/:group_id', [verifyToken], testController.findAllTestBy
  *         schema:
  *           type: string
  *         required: true
- *         description: The subject name
+ *         description: The subject name to retrieve tests for
  *     responses:
  *       200:
  *         description: A list of tests for the subject
@@ -449,10 +449,38 @@ router.get('/tests/group/:group_id', [verifyToken], testController.findAllTestBy
  *               type: array
  *               items:
  *                 $ref: '#/components/schemas/Test'
+ *       400:
+ *         description: Bad request, subject parameter is missing
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 message:
+ *                   type: string
+ *                   example: Subject parameter is required
  *       404:
  *         description: No tests found for this subject
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 message:
+ *                   type: string
+ *                   example: No tests found for this subject
+ *       500:
+ *         description: Internal server error
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 message:
+ *                   type: string
+ *                   example: Some error occurred while retrieving tests
  */
-router.get('/tests/subject/:subject', [verifyToken], testController.getTestBySubject);
+router.get('/tests/subject/:subject', [verifyToken], testController.getTestsBySubject);
 
 /**
  * @swagger
