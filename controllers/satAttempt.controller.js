@@ -15,28 +15,45 @@ exports.findAllAttempts = (req, res) => {
     }
 
     SatAttempt.findAll({
-        where: {
-            user_id: user_id
-        },
+        where: {user_id: user_id},
         include: [
             {
                 model: SatTest,
                 as: 'sat_test',
-                attributes: ['sat_test_id', 'name', 'group_id']
+                include: [
+                    {
+                        model: SatQuestion,
+                        as: 'sat_questions',
+                        include: [
+                            {
+                                model: SatAnswer,
+                                as: 'sat_answers',
+                                required: false
+                            },
+                            {
+                                model: SatAnswerOption,
+                                as: 'sat_answer_options',
+                                required: false
+                            }
+                        ]
+                    }
+                ]
             }
         ]
     })
-        .then(data => {
-            const attempts = data.map(attempt => ({
-                attempt_id: attempt.sat_attempt_id,
-                user_id: attempt.user_id,
-                test_id: attempt.test_id,
-                start_time: attempt.start_time,
-                end_time: attempt.end_time,
-                verbal_score: attempt.verbal_score,
-                sat_score: attempt.sat_score,
-                total_score: attempt.total_score,
-                SatTest: attempt.SatTest
+        .then(async data => {
+            const attempts = await Promise.all(data.map(async attempt => {
+                const scores = await calculateScores(attempt);
+                const totalScore = Object.values(scores).reduce((acc, score) => acc + score, 0);
+                return {
+                    attempt_id: attempt.sat_attempt_id,
+                    sat_test_id: attempt.sat_test.sat_test_id,
+                    name: attempt.sat_test.name,
+                    question_count: attempt.sat_test.sat_questions.length,
+                    user_id: attempt.user_id,
+                    total_score: totalScore,
+                    scores: scores,
+                };
             }));
             res.send(attempts);
         })
@@ -98,11 +115,10 @@ exports.findAnswersForAttempt = async (req, res) => {
             });
         }
 
-        const verbalScore = calculateScore(attempt.sat_test.sat_questions, 'verbal');
-        const satScore = calculateScore(attempt.sat_test.sat_questions, 'sat');
-        const totalScore = verbalScore + satScore;
+        const scores = await calculateScores(attempt);
+        const totalScore = Object.values(scores).reduce((acc, score) => acc + score, 0);
 
-        await attempt.update({verbal_score: verbalScore, sat_score: satScore, total_score: totalScore});
+        await attempt.update({total_score: totalScore});
 
         const transformedData = {
             attempt: {
@@ -111,9 +127,8 @@ exports.findAnswersForAttempt = async (req, res) => {
                 user_id: attempt.user_id,
                 start_time: attempt.start_time,
                 end_time: attempt.end_time,
-                verbal_score: verbalScore,
-                sat_score: satScore,
                 total_score: totalScore,
+                scores: scores,
                 sat_test: {
                     test_id: attempt.sat_test.test_id,
                     group_id: attempt.sat_test.group_id,
@@ -130,14 +145,12 @@ exports.findAnswersForAttempt = async (req, res) => {
                             image: question.image,
                             explanation: question.explanation,
                             section: question.section,
-                            sat_answer_options: question.sat_answer_options ? question.sat_answer_options.map(option => {
-                                return {
-                                    sat_answer_option_id: option.sat_answer_option_id,
-                                    option_text: option.option_text,
-                                    is_correct: option.is_correct,
-                                    selected: userAnswer ? parseInt(userAnswer.selected_option) === option.sat_answer_option_id : false
-                                };
-                            }) : []
+                            sat_answer_options: question.sat_answer_options ? question.sat_answer_options.map(option => ({
+                                sat_answer_option_id: option.sat_answer_option_id,
+                                option_text: option.option_text,
+                                is_correct: option.is_correct,
+                                selected: userAnswer ? parseInt(userAnswer.selected_option) === option.sat_answer_option_id : false
+                            })) : []
                         };
                     })
                 }
@@ -152,19 +165,29 @@ exports.findAnswersForAttempt = async (req, res) => {
     }
 };
 
-const calculateScore = (questions, section) => {
-    let score = 0;
-    questions.forEach(question => {
-        if (question.section === section) {
-            question.sat_answers.forEach(answer => {
-                const correctOption = question.sat_answer_options.find(option => option.is_correct);
-                if (correctOption && correctOption.sat_answer_option_id === answer.selected_option) {
-                    score += 1; // or any other scoring logic
-                }
-            });
+const calculateScores = async (attempt) => {
+    const scores = {};
+    const sat_answers = await SatAnswer.findAll({where: {sat_attempt_id: attempt.sat_attempt_id}});
+
+    for (const answer of sat_answers) {
+        const question = await SatQuestion.findByPk(answer.sat_question_id, {
+            include: [{
+                model: SatAnswerOption,
+                as: 'sat_answer_options'
+            }]
+        });
+
+        const section = question.section;
+        if (!scores[section]) {
+            scores[section] = 0;
         }
-    });
-    return score;
+
+        const correctOptions = question.sat_answer_options.filter(option => option.is_correct);
+        if (correctOptions.some(option => option.sat_answer_option_id === parseInt(answer.selected_option))) {
+            scores[section]++;
+        }
+    }
+    return scores;
 };
 
 // Delete an attempt

@@ -19,6 +19,7 @@ module.exports = (sequelize, DataTypes) => {
                 model: 'sat_questions',
                 key: 'sat_question_id',
             },
+            onDelete: 'CASCADE'
         },
     }, {
         tableName: 'sat_answer_options',
@@ -26,7 +27,11 @@ module.exports = (sequelize, DataTypes) => {
     });
 
     SatAnswerOption.associate = models => {
-        SatAnswerOption.belongsTo(models.SatQuestion, {foreignKey: 'question_id', as: 'sat_question'});
+        SatAnswerOption.belongsTo(models.SatQuestion, {
+            foreignKey: 'question_id',
+            as: 'sat_question',
+            onDelete: 'CASCADE'
+        });
     };
 
     return SatAnswerOption;
