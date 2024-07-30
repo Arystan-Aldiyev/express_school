@@ -260,4 +260,28 @@ router.patch('/contents/:content_id/mark-as-done', [verifyToken], contentControl
  */
 router.patch('/contents/:content_id/unmark-as-done', [verifyToken], contentController.unmarkContentAsDone);
 
+/**
+ * @swagger
+ * /api/contents/{content_id}:
+ *   delete:
+ *     summary: Delete a content by ID
+ *     tags: [Contents]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: content_id
+ *         schema:
+ *           type: integer
+ *         required: true
+ *         description: The content ID
+ *     responses:
+ *       204:
+ *         description: Content deleted successfully
+ *       404:
+ *         description: Content not found
+ */
+router.delete('/contents/:content_id', [verifyToken, verifyIsAdmin || verifyIsTeacher], contentController.deleteContent);
+
+
 module.exports = router;
