@@ -51,6 +51,7 @@ db.satAnswerOption = require('./satAnswerOption.model')(sequelize, Sequelize);
 db.satAnswer = require('./satAnswer.model')(sequelize, Sequelize);
 db.satAttempt = require('./satAttempt.model')(sequelize, Sequelize);
 db.suspendTestAnswer = require('./suspendTest.model')(sequelize, Sequelize)
+db.studentContent = require('./MarkAsDoneContent')(sequelize, Sequelize)
 
 // Define associations
 db.group.belongsTo(db.user, {foreignKey: 'teacher_id', as: 'teacher', onDelete: 'SET NULL'});

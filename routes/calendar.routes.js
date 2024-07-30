@@ -123,7 +123,7 @@ router.get('/calendars/my', [verifyToken], calendarController.getMyCalendars);
  *       404:
  *         description: Calendars not found
  */
-router.get('/calendars/:group_id', [verifyToken, verifyIsAdmin || verifyIsTeacher], calendarController.getCalendars);
+router.get('/calendars/:group_id', [verifyToken], calendarController.getCalendars);
 
 /**
  * @swagger

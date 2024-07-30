@@ -1,6 +1,7 @@
 const db = require("../models");
 const Content = db.content;
 const Topic = db.topic;
+const StudentContent = db.studentContent;
 const path = require('path');
 const {v4: uuidv4} = require('uuid');
 const {awsBucketName} = require("../config/aws.config");
@@ -109,9 +110,20 @@ exports.getContents = async (req, res) => {
 exports.getContentById = async (req, res) => {
     try {
         const {content_id} = req.params;
+        const userId = req.userId;
         const content = await Content.findByPk(content_id);
+
         if (content) {
-            res.status(200).json(content);
+            const studentContent = await StudentContent.findOne({
+                where: {userId, contentId: content_id}
+            });
+
+            const contentWithStatus = {
+                ...content.get(),
+                isDone: studentContent ? studentContent.isDone : false
+            };
+
+            res.status(200).json(contentWithStatus);
         } else {
             res.status(404).json({message: 'Content not found'});
         }
@@ -124,13 +136,28 @@ exports.getContentById = async (req, res) => {
 exports.getContentsByTopicId = async (req, res) => {
     try {
         const {topic_id} = req.params;
+        const userId = req.userId;
         const existingTopic = await Topic.findByPk(topic_id);
+
         if (!existingTopic) {
             return res.status(404).json({message: "Topic not found"});
         }
+
         const contents = await Content.findAll({where: {topic_id}});
+
         if (contents.length > 0) {
-            res.status(200).json(contents);
+            const contentsWithStatus = await Promise.all(contents.map(async content => {
+                const studentContent = await StudentContent.findOne({
+                    where: {userId, contentId: content.content_id}
+                });
+
+                return {
+                    ...content.get(),
+                    isDone: studentContent ? studentContent.isDone : false
+                };
+            }));
+
+            res.status(200).json(contentsWithStatus);
         } else {
             res.status(404).json({message: 'No contents found for this topic'});
         }
@@ -268,11 +295,23 @@ exports.deleteContent = async (req, res) => {
 exports.markContentAsDone = async (req, res) => {
     try {
         const {content_id} = req.params;
+        const userId = req.userId;
         const content = await Content.findByPk(content_id);
         if (content) {
-            content.isDone = true;
-            await content.save();
-            res.status(200).json({message: 'Content marked as done', content});
+            let studentContent = await StudentContent.findOne({
+                where: {userId, contentId: content_id}
+            });
+            if (!studentContent) {
+                studentContent = await StudentContent.create({
+                    userId,
+                    contentId: content_id,
+                    isDone: true
+                });
+            } else {
+                studentContent.isDone = true;
+                await studentContent.save();
+            }
+            res.status(200).json({message: 'Content marked as done', studentContent});
         } else {
             res.status(404).json({message: 'Content not found'});
         }
@@ -281,14 +320,23 @@ exports.markContentAsDone = async (req, res) => {
     }
 };
 
+// Unmark Content as Done for a User
 exports.unmarkContentAsDone = async (req, res) => {
     try {
         const {content_id} = req.params;
+        const userId = req.userId; // assuming you get the user ID from the token
         const content = await Content.findByPk(content_id);
         if (content) {
-            content.isDone = false;
-            await content.save();
-            res.status(200).json({message: 'Content unmarked as done', content});
+            let studentContent = await StudentContent.findOne({
+                where: {userId, contentId: content_id}
+            });
+            if (studentContent) {
+                studentContent.isDone = false;
+                await studentContent.save();
+                res.status(200).json({message: 'Content unmarked as done', studentContent});
+            } else {
+                res.status(404).json({message: 'Record not found'});
+            }
         } else {
             res.status(404).json({message: 'Content not found'});
         }
