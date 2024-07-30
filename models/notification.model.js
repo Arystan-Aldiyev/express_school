@@ -5,7 +5,7 @@ module.exports = (sequelize, DataTypes) => {
             primaryKey: true,
             autoIncrement: true
         },
-        user_id: {
+        sender_id: {
             type: DataTypes.INTEGER,
             references: {
                 model: 'users',
@@ -17,13 +17,18 @@ module.exports = (sequelize, DataTypes) => {
             type: DataTypes.TEXT,
             allowNull: false
         },
+        group_id: {
+            type: DataTypes.INTEGER,
+            allowNull: false,
+            references: {
+                model: 'groups',
+                key: 'group_id'
+            },
+            onDelete: 'CASCADE'
+        },
         created_at: {
             type: DataTypes.DATE,
             defaultValue: DataTypes.NOW
-        },
-        is_read: {
-            type: DataTypes.BOOLEAN,
-            defaultValue: false
         }
     }, {
         tableName: 'notifications',

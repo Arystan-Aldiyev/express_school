@@ -90,8 +90,10 @@ db.answer.belongsTo(db.user, {foreignKey: 'user_id', onDelete: 'CASCADE'});
 db.question.hasMany(db.answer, {foreignKey: 'question_id', as: 'Answers', onDelete: 'CASCADE'});
 db.user.hasMany(db.answer, {foreignKey: 'user_id', onDelete: 'CASCADE'});
 
-db.notification.belongsTo(db.user, {foreignKey: 'user_id', onDelete: 'SET NULL'});
-db.user.hasMany(db.notification, {foreignKey: 'user_id', onDelete: 'SET NULL'});
+db.notification.belongsTo(db.user, {as: 'sender', foreignKey: 'sender_id', onDelete: 'SET NULL'});
+db.user.hasMany(db.notification, {as: 'sentNotifications', foreignKey: 'sender_id', onDelete: 'SET NULL'});
+db.notification.belongsTo(db.group, {as: 'group', foreignKey: 'group_id', onDelete: 'CASCADE'});
+db.group.hasMany(db.notification, {as: 'notifications', foreignKey: 'group_id', onDelete: 'CASCADE'})
 
 db.post.belongsTo(db.group, {foreignKey: 'group_id', onDelete: 'CASCADE'});
 db.post.belongsTo(db.user, {foreignKey: 'author_id', onDelete: 'CASCADE'});

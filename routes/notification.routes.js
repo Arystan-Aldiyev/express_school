@@ -11,6 +11,29 @@ const notificationController = require('../controllers/notification.controller')
  *       type: http
  *       scheme: bearer
  *       bearerFormat: JWT
+ *   schemas:
+ *     User:
+ *       type: object
+ *       properties:
+ *         user_id:
+ *           type: integer
+ *         name:
+ *           type: string
+ *         email:
+ *           type: string
+ *     Notification:
+ *       type: object
+ *       properties:
+ *         notification_id:
+ *           type: integer
+ *         message:
+ *           type: string
+ *         sender_id:
+ *           type: integer
+ *         group_id:
+ *           type: integer
+ *         sender:
+ *           $ref: '#/components/schemas/User'
  *
  * security:
  *   - bearerAuth: []
@@ -28,10 +51,10 @@ const notificationController = require('../controllers/notification.controller')
  *           schema:
  *             type: object
  *             properties:
- *               userId:
- *                 type: integer
  *               message:
  *                 type: string
+ *               group_id:
+ *                 type: integer
  *     responses:
  *       201:
  *         description: Notification created successfully
