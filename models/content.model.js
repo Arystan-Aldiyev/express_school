@@ -24,6 +24,11 @@ module.exports = (sequelize, DataTypes) => {
         resource: {
             type: DataTypes.STRING,
             allowNull: false
+        },
+        isDone: {
+            type: DataTypes.BOOLEAN,
+            defaultValue: false,
+            field: 'is_done'
         }
     }, {
         tableName: 'contents',

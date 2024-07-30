@@ -263,3 +263,36 @@ exports.deleteContent = async (req, res) => {
         res.status(500).json({error: error.message});
     }
 };
+
+
+exports.markContentAsDone = async (req, res) => {
+    try {
+        const {content_id} = req.params;
+        const content = await Content.findByPk(content_id);
+        if (content) {
+            content.isDone = true;
+            await content.save();
+            res.status(200).json({message: 'Content marked as done', content});
+        } else {
+            res.status(404).json({message: 'Content not found'});
+        }
+    } catch (error) {
+        res.status(500).json({error: error.message});
+    }
+};
+
+exports.unmarkContentAsDone = async (req, res) => {
+    try {
+        const {content_id} = req.params;
+        const content = await Content.findByPk(content_id);
+        if (content) {
+            content.isDone = false;
+            await content.save();
+            res.status(200).json({message: 'Content unmarked as done', content});
+        } else {
+            res.status(404).json({message: 'Content not found'});
+        }
+    } catch (error) {
+        res.status(500).json({error: error.message});
+    }
+};

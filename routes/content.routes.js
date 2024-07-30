@@ -31,12 +31,15 @@ const {upload} = require("../services/amazon.s3.service");
  *           type: string
  *         resource:
  *           type: string
+ *         isDone:
+ *           type: boolean
  *       example:
  *         content_id: 1
  *         topic_id: 2
  *         title: "Introduction to Algebra"
  *         mode: "text"
  *         resource: "This is the content text"
+ *         isDone: false
  */
 
 /**
@@ -340,5 +343,59 @@ router.put('/contents/video/:content_id', [verifyToken, verifyIsAdmin || verifyI
  *         description: Content not found
  */
 router.delete('/contents/:content_id', [verifyToken, verifyIsAdmin || verifyIsTeacher], contentController.deleteContent);
+
+/**
+ * @swagger
+ * /api/contents/{content_id}/mark-as-done:
+ *   patch:
+ *     summary: Mark content as done
+ *     tags: [Contents]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: content_id
+ *         schema:
+ *           type: integer
+ *         required: true
+ *         description: The content ID
+ *     responses:
+ *       200:
+ *         description: Content marked as done
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/Content'
+ *       404:
+ *         description: Content not found
+ */
+router.patch('/contents/:content_id/mark-as-done', [verifyToken], contentController.markContentAsDone);
+
+/**
+ * @swagger
+ * /api/contents/{content_id}/unmark-as-done:
+ *   patch:
+ *     summary: Unmark content as done
+ *     tags: [Contents]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: content_id
+ *         schema:
+ *           type: integer
+ *         required: true
+ *         description: The content ID
+ *     responses:
+ *       200:
+ *         description: Content unmarked as done
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/Content'
+ *       404:
+ *         description: Content not found
+ */
+router.patch('/contents/:content_id/unmark-as-done', [verifyToken], contentController.unmarkContentAsDone);
 
 module.exports = router;
