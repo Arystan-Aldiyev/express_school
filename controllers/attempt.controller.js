@@ -108,6 +108,7 @@ exports.findAnswersForAttempt = async (req, res) => {
                             hint: question.hint,
                             image: question.image,
                             explanation: question.explanation,
+                            explanation_image: question.explanation_image,
                             answerOptions: question.answerOptions ? question.answerOptions.map(option => {
                                 return {
                                     option_id: option.option_id,
