@@ -95,7 +95,7 @@ router.get('/questions', [verifyToken, verifyIsAdmin || verifyIsTeacher], questi
  *       404:
  *         description: Question not found
  */
-router.get('/questions/:id', [verifyToken, verifyIsAdmin || verifyIsTeacher], questionController.findOneQuestion);
+router.get('/questions/:id', [verifyToken], questionController.findOneQuestion);
 
 /**
  * @swagger

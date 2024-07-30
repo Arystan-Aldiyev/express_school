@@ -241,7 +241,7 @@ router.get('/tests/:id', [verifyToken], testController.findOneTest);
  *       404:
  *         description: Test not found
  */
-router.get('/tests/:id/details', [verifyToken, verifyIsAdmin || verifyIsTeacher], testController.findTestWithDetails);
+router.get('/tests/:id/details', [verifyToken], testController.findTestWithDetails);
 
 /**
  * @swagger

@@ -104,7 +104,7 @@ const satTestController = require('../controllers/satTest.controller');
  *       500:
  *         description: Server error
  */
-router.post('/satTests', [verifyToken, verifyIsAdmin], satTestController.createSatTest);
+router.post('/satTests', [verifyToken], satTestController.createSatTest);
 
 /**
  * @swagger
