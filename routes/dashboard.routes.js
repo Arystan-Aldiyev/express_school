@@ -224,7 +224,6 @@ router.post(
  */
 router.get(
     "/countdowns",
-    [verifyToken],
     dashboardController.getCountdowns
 );
 
