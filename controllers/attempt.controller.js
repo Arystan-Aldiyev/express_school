@@ -9,11 +9,7 @@ const AnswerOption = db.answerOption;
 exports.findAllAttempts = async (req, res) => {
     const user_id = req.params.user_id;
     const test_id = req.params.test_id;
-    const userRole = req.userRole;
 
-    if (userRole !== 'admin' && userRole !== 'teacher' && req.userId !== user_id) {
-        return res.status(409).json("You don't have access to these attempts");
-    }
 
     try {
         const attempts = await Attempt.findAll({
@@ -52,11 +48,6 @@ exports.findAllAttempts = async (req, res) => {
 exports.findAnswersForAttempt = async (req, res) => {
     const attempt_id = req.params.attempt_id;
     const userId = req.params.user_id;
-    const userRole = req.userRole;
-
-    if (userRole !== 'admin' && userRole !== 'teacher' && userId !== req.userId) {
-        return res.status(409).json("You don't have access to this attempt");
-    }
 
     try {
         let attempt = await Attempt.findOne({

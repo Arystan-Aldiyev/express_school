@@ -8,12 +8,7 @@ const SatAnswerOption = db.satAnswerOption;
 // Retrieve all attempts for a user
 exports.findAllAttempts = (req, res) => {
     const user_id = req.params.user_id;
-    const userRole = req.userRole;
-
-    if (userRole !== 'admin' && userRole !== 'teacher' && req.userId !== user_id) {
-        return res.status(403).json("You don't have access to these attempts");
-    }
-
+    console.log(user_id)
     SatAttempt.findAll({
         where: {user_id: user_id},
         include: [
@@ -68,11 +63,7 @@ exports.findAllAttempts = (req, res) => {
 exports.findAnswersForAttempt = async (req, res) => {
     const attempt_id = req.params.attempt_id;
     const userId = req.params.user_id;
-    const userRole = req.userRole;
 
-    if (userRole !== 'admin' && userRole !== 'teacher' && userId !== req.userId) {
-        return res.status(403).json("You don't have access to this attempt");
-    }
 
     try {
         let attempt = await SatAttempt.findOne({
