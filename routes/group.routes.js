@@ -1,6 +1,6 @@
 const express = require('express');
 const router = express.Router();
-const { verifyToken, verifyIsAdmin, verifyIsTeacher, verifyIsGroupMember } = require('../middleware/authJwt');
+const {verifyToken, verifyIsAdmin, verifyIsTeacher, verifyIsGroupMember} = require('../middleware/authJwt');
 const groupController = require('../controllers/group.controller');
 
 /**
@@ -11,10 +11,10 @@ const groupController = require('../controllers/group.controller');
  *       type: http
  *       scheme: bearer
  *       bearerFormat: JWT
- * 
+ *
  * security:
  *   - bearerAuth: []
- * 
+ *
  * /api/groups:
  *   get:
  *     summary: Retrieve a list of all groups
@@ -34,7 +34,7 @@ const groupController = require('../controllers/group.controller');
  *         description: Unauthorized
  *       403:
  *         description: Forbidden
- * 
+ *
  *   post:
  *     summary: Create a new group
  *     tags: [Groups]
@@ -62,7 +62,7 @@ const groupController = require('../controllers/group.controller');
  *         description: Forbidden
  *       500:
  *         description: Internal Server Error
- * 
+ *
  * /api/groups/{id}:
  *   get:
  *     summary: Retrieve details of a specific group
@@ -85,7 +85,7 @@ const groupController = require('../controllers/group.controller');
  *         description: Forbidden
  *       404:
  *         description: Group not found
- * 
+ *
  *   put:
  *     summary: Update a specific group
  *     tags: [Groups]
@@ -122,7 +122,7 @@ const groupController = require('../controllers/group.controller');
  *         description: Group not found
  *       500:
  *         description: Internal Server Error
- * 
+ *
  *   delete:
  *     summary: Delete a specific group
  *     tags: [Groups]
@@ -150,37 +150,37 @@ const groupController = require('../controllers/group.controller');
 
 // Retrieve a list of all groups
 router.get(
-  "/groups",
-  [verifyToken, verifyIsAdmin || verifyIsTeacher],
-  groupController.getAllGroups
+    "/groups",
+    [verifyToken, verifyIsAdmin || verifyIsTeacher],
+    groupController.getAllGroups
 );
 
 // Retrieve details of a specific group
 router.get(
-  "/groups/:id",
-  [verifyToken, verifyIsAdmin || verifyIsTeacher || verifyIsGroupMember],
-  groupController.getGroupById
+    "/groups/:id",
+    [verifyToken, verifyIsGroupMember],
+    groupController.getGroupById
 );
 
 // Create a new group
 router.post(
-  "/groups",
-  [verifyToken, verifyIsAdmin || verifyIsTeacher],
-  groupController.createGroup
+    "/groups",
+    [verifyToken, verifyIsAdmin || verifyIsTeacher],
+    groupController.createGroup
 );
 
 // Update a specific group
 router.put(
-  "/groups/:id",
-  [verifyToken, verifyIsAdmin || verifyIsTeacher],
-  groupController.updateGroup
+    "/groups/:id",
+    [verifyToken, verifyIsAdmin || verifyIsTeacher],
+    groupController.updateGroup
 );
 
 // Delete a specific group
 router.delete(
-  "/groups/:id",
-  [verifyToken, verifyIsAdmin || verifyIsTeacher],
-  groupController.deleteGroup
+    "/groups/:id",
+    [verifyToken, verifyIsAdmin || verifyIsTeacher],
+    groupController.deleteGroup
 );
 
 module.exports = router;

@@ -162,6 +162,6 @@ router.get('/satAttempts/:attempt_id/user/:user_id/answers', [verifyToken], satA
  *       500:
  *         description: Server error
  */
-router.delete('/satAttempts/:id', [verifyToken, verifyIsAdmin], satAttemptController.deleteAttempt);
+router.delete('/satAttempts/:id', [verifyToken], satAttemptController.deleteAttempt);
 
 module.exports = router;
