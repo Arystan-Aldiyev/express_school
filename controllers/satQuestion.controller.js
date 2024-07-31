@@ -210,7 +210,7 @@ exports.updateQuestion = async (req, res) => {
                 section: req.body.section,
             },
             {
-                where: {question_id: id},
+                where: {sat_question_id: id},
             }
         );
 
@@ -290,7 +290,7 @@ exports.patchQuestion = async (req, res) => {
         }
 
         const [num] = await SatQuestion.update(updateData, {
-            where: { question_id: id },
+            where: { sat_question_id: id },
         });
 
         if (num == 1) {
@@ -307,7 +307,7 @@ exports.patchQuestion = async (req, res) => {
 exports.deleteQuestion = async (req, res) => {
     try {
         const question = await SatQuestion.findOne({
-            where: {question_id: req.params.id},
+            where: {sat_question_id: req.params.id},
         });
 
         if (!question) {
@@ -323,7 +323,7 @@ exports.deleteQuestion = async (req, res) => {
         }
 
         const num = await SatQuestion.destroy({
-            where: {question_id: req.params.id},
+            where: {sat_question_id: req.params.id},
         });
 
         if (num == 1) {

@@ -99,7 +99,7 @@ exports.findAllAnswerOptions = (req, res) => {
     SatAnswerOption.findAll({where: {question_id}})
         .then((data) => {
             const filteredData = data.map((option) => ({
-                option_id: option.sat_answer_option_id,
+                sat_answer_option_id: option.sat_answer_option_id,
                 question_id: option.question_id,
                 option_text: option.text,
             }));
