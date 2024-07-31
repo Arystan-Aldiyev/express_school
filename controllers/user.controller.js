@@ -1,5 +1,6 @@
 const db = require('../models');
 const User = db.user;
+const GroupMembership = db.groupMembership;
 const bcrypt = require('bcryptjs');
 
 exports.createUser = (req, res) => {
@@ -28,18 +29,21 @@ exports.getAllUsers = (req, res) => {
         });
 };
 
-exports.getUserById = (req, res) => {
-    User.findByPk(req.params.id)
-        .then(user => {
-            if (user) {
-                res.status(200).send(user);
-            } else {
-                res.status(404).send({message: 'User not found'});
-            }
-        })
-        .catch(err => {
-            res.status(500).send({message: err.message});
-        });
+exports.getUserById = async (req, res) => {
+    try {
+        const membership = await GroupMembership.findOne({where: {user_id: req.params.id}});
+        const groupId = membership ? membership.group_id : null;
+
+        const user = await User.findByPk(req.params.id);
+        if (user) {
+            user.dataValues.group_id = groupId;
+            res.status(200).send(user);
+        } else {
+            res.status(404).send({message: 'User not found'});
+        }
+    } catch (err) {
+        res.status(500).send({message: err.message});
+    }
 };
 
 exports.updateUser = (req, res) => {

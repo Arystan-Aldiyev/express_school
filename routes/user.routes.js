@@ -54,6 +54,21 @@ const { verifyIsAdmin, verifyToken, isAdminOrOwner } = require('../middleware/au
  */
 
 /**
+* @swagger
+* components:
+*  schemas:
+*    UserWithGroup:
+*      type: object
+*      properties:
+*        user:
+*          $ref: '#/components/schemas/User'
+*        group_id:
+*          type: integer
+*          description: The ID of the group the user belongs to
+*
+ */
+
+/**
  * @swagger
  * /api/user:
  *   post:
@@ -114,7 +129,7 @@ const { verifyIsAdmin, verifyToken, isAdminOrOwner } = require('../middleware/au
  *         content:
  *           application/json:
  *             schema:
- *               $ref: '#/components/schemas/User'
+ *               $ref: '#/components/schemas/UserWithGroup'
  *       '401':
  *         description: Unauthorized
  *       '404':
