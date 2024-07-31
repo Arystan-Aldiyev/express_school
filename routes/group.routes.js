@@ -1,6 +1,12 @@
 const express = require('express');
 const router = express.Router();
-const {verifyToken, verifyIsAdmin, verifyIsTeacher, verifyIsGroupMember} = require('../middleware/authJwt');
+const {
+    verifyToken,
+    verifyIsAdmin,
+    verifyIsTeacher,
+    verifyIsGroupMember,
+    allowTeacherOrAdminOrGroupMember
+} = require('../middleware/authJwt');
 const groupController = require('../controllers/group.controller');
 
 /**
@@ -156,11 +162,8 @@ router.get(
 );
 
 // Retrieve details of a specific group
-router.get(
-    "/groups/:id",
-    [verifyToken, verifyIsGroupMember],
-    groupController.getGroupById
-);
+router.get("/groups/:id", verifyToken, allowTeacherOrAdminOrGroupMember, groupController.getGroupById);
+
 
 // Create a new group
 router.post(

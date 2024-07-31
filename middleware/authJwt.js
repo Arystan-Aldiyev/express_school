@@ -1,7 +1,7 @@
 const jwt = require('jsonwebtoken');
 const config = require('../config/auth.config');
 const db = require('../models');
-const groupMembership = require('../models/groupMembership.model');
+const groupMembership = db.groupMembership;
 const User = db.user;
 
 const secretKey = config.secret;
@@ -81,6 +81,31 @@ const verifyIsGroupMember = (req, res, next) => {
     });
 }
 
+const allowTeacherOrAdminOrGroupMember = (req, res, next) => {
+    if (req.userRole === 'teacher') {
+        return next();
+    }
+
+    if (req.userRole === 'admin') {
+        return next();
+    }
+
+    groupMembership.findOne({
+        where: {
+            user_id: req.userId,
+            group_id: req.params.id
+        }
+    }).then(membership => {
+        if (membership) {
+            return next();
+        } else {
+            return res.status(403).send({message: "Require Group Member Role!"});
+        }
+    }).catch(err => {
+        return res.status(500).send({message: "Internal Server Error"});
+    });
+};
+
 
 module.exports = {
     verifyToken,
@@ -88,5 +113,6 @@ module.exports = {
     verifyIsTeacher,
     verifyIsStudent,
     isAdminOrOwner,
-    verifyIsGroupMember
+    verifyIsGroupMember,
+    allowTeacherOrAdminOrGroupMember
 };
