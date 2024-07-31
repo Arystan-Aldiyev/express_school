@@ -10,7 +10,7 @@ const options = {
         },
         servers: [
             {
-                url: 'https://express-school-4jek.onrender.com',
+                url: 'https://express-school-qher.onrender.com',
             },
         ],
         components: {
