@@ -143,28 +143,28 @@ const membershipController = require('../controllers/groupMembership.controller'
 // Retrieve memberships in a specific group
 router.get(
   "/groups/:id/memberships",
-  [verifyToken, verifyIsAdmin || verifyIsTeacher || verifyIsGroupMember],
+  [verifyToken, (verifyIsAdmin || verifyIsTeacher || verifyIsGroupMember)],
   membershipController.getGroupMemberships
 );
 
 // Add a member to a group
 router.post(
   "/groups/:id/memberships",
-  [verifyToken, verifyIsAdmin || verifyIsTeacher],
+  [verifyToken,( verifyIsAdmin || verifyIsTeacher)],
   membershipController.addGroupMember
 );
 
 // Add a member to a group by invite code
 router.post(
   "/groups/join",
-  [verifyToken, verifyIsAdmin || verifyIsStudent || verifyIsTeacher],
+  [verifyToken, (verifyIsAdmin || verifyIsStudent || verifyIsTeacher)],
   membershipController.joinGroupByInviteCode
 );
 
 // Remove a member from a group
 router.delete(
   "/groups/:id/memberships/:membership_id",
-  [verifyToken, verifyIsAdmin || verifyIsTeacher],
+  [verifyToken,(verifyIsAdmin || verifyIsTeacher)],
   membershipController.removeGroupMember
 );
 
