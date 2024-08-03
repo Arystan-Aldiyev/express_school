@@ -143,7 +143,7 @@ const membershipController = require('../controllers/groupMembership.controller'
 // Retrieve memberships in a specific group
 router.get(
   "/groups/:id/memberships",
-  [verifyToken, (verifyIsAdmin || verifyIsTeacher || verifyIsGroupMember)],
+  [verifyToken],
   membershipController.getGroupMemberships
 );
 
