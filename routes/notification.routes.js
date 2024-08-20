@@ -1,6 +1,6 @@
 const express = require('express');
 const router = express.Router();
-const {verifyToken, verifyIsAdmin, verifyIsTeacher} = require('../middleware/authJwt');
+const {verifyToken, verifyIsAdmin, verifyIsTeacher, isAdminOrTeacher} = require('../middleware/authJwt');
 const notificationController = require('../controllers/notification.controller');
 
 /**
@@ -152,7 +152,7 @@ const notificationController = require('../controllers/notification.controller')
  *         description: Internal Server Error
  */
 
-router.post('/notifications', [verifyToken, verifyIsAdmin || verifyIsTeacher], notificationController.createNotification);
+router.post('/notifications', [verifyToken, isAdminOrTeacher], notificationController.createNotification);
 
 router.get('/notifications', [verifyToken], notificationController.getNotifications);
 

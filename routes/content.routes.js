@@ -1,7 +1,7 @@
 const express = require('express');
 const router = express.Router();
 const contentController = require('../controllers/content.controller');
-const {verifyToken, verifyIsAdmin, verifyIsTeacher} = require('../middleware/authJwt');
+const {verifyToken, verifyIsAdmin, verifyIsTeacher, isAdminOrTeacher} = require('../middleware/authJwt');
 const {upload} = require("../services/amazon.s3.service");
 
 /**
@@ -64,7 +64,7 @@ const {upload} = require("../services/amazon.s3.service");
  *             schema:
  *               $ref: '#/components/schemas/Content'
  */
-router.post('/contents', [verifyToken, verifyIsAdmin || verifyIsTeacher], contentController.createContentWithText);
+router.post('/contents', [verifyToken, isAdminOrTeacher], contentController.createContentWithText);
 
 /**
  * @swagger
@@ -96,7 +96,7 @@ router.post('/contents', [verifyToken, verifyIsAdmin || verifyIsTeacher], conten
  *             schema:
  *               $ref: '#/components/schemas/Content'
  */
-router.post('/contents/file', [verifyToken, verifyIsAdmin || verifyIsTeacher], upload.single('file'), contentController.createContentWithFile);
+router.post('/contents/file', [verifyToken, isAdminOrTeacher], upload.single('file'), contentController.createContentWithFile);
 
 /**
  * @swagger
@@ -128,7 +128,7 @@ router.post('/contents/file', [verifyToken, verifyIsAdmin || verifyIsTeacher], u
  *             schema:
  *               $ref: '#/components/schemas/Content'
  */
-router.post('/contents/video', [verifyToken, verifyIsAdmin || verifyIsTeacher], upload.single('file'), contentController.createContentWithVideo);
+router.post('/contents/video', [verifyToken, isAdminOrTeacher], upload.single('file'), contentController.createContentWithVideo);
 
 /**
  * @swagger
@@ -281,7 +281,7 @@ router.patch('/contents/:content_id/unmark-as-done', [verifyToken], contentContr
  *       404:
  *         description: Content not found
  */
-router.delete('/contents/:content_id', [verifyToken, verifyIsAdmin || verifyIsTeacher], contentController.deleteContent);
+router.delete('/contents/:content_id', [verifyToken, isAdminOrTeacher], contentController.deleteContent);
 
 
 module.exports = router;

@@ -99,7 +99,7 @@ exports.createContentWithVideo = async (req, res) => {
 // Get all Contents
 exports.getContents = async (req, res) => {
     try {
-        const contents = await Content.findAll();
+        const contents = await Content.findAll({order: [['content_id', 'ASC']]});
         res.status(200).json(contents);
     } catch (error) {
         res.status(500).json({error: error.message});
@@ -143,7 +143,7 @@ exports.getContentsByTopicId = async (req, res) => {
             return res.status(404).json({message: "Topic not found"});
         }
 
-        const contents = await Content.findAll({where: {topic_id}});
+        const contents = await Content.findAll({where: {topic_id}, order: [['content_id', 'ASC']]});
 
         if (contents.length > 0) {
             const contentsWithStatus = await Promise.all(contents.map(async content => {

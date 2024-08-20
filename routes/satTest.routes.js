@@ -1,6 +1,6 @@
 const express = require('express');
 const router = express.Router();
-const {verifyToken, verifyIsAdmin} = require('../middleware/authJwt');
+const {verifyToken, verifyIsAdmin, isAdminOrTeacher} = require('../middleware/authJwt');
 const satTestController = require('../controllers/satTest.controller');
 
 /**
@@ -56,11 +56,14 @@ const satTestController = require('../controllers/satTest.controller');
  *         text:
  *           type: string
  *         section:
+ *           type: string,
+ *         question_type:
  *           type: string
  *       example:
  *         sat_question_id: 1
  *         text: "What is 2 + 2?"
  *         section: "Math"
+ *         question_type: "Writing"
  *     SatAnswerOption:
  *       type: object
  *       properties:
@@ -104,7 +107,7 @@ const satTestController = require('../controllers/satTest.controller');
  *       500:
  *         description: Server error
  */
-router.post('/satTests', [verifyToken], satTestController.createSatTest);
+router.post('/satTests', [verifyToken, isAdminOrTeacher], satTestController.createSatTest);
 
 /**
  * @swagger
@@ -245,7 +248,7 @@ router.get('/satTests/:id/details', [verifyToken], satTestController.getSatTestW
  *       500:
  *         description: Server error
  */
-router.put('/satTests/:id', [verifyToken, verifyIsAdmin], satTestController.updateSatTest);
+router.put('/satTests/:id', [verifyToken, isAdminOrTeacher], satTestController.updateSatTest);
 
 /**
  * @swagger
@@ -270,7 +273,7 @@ router.put('/satTests/:id', [verifyToken, verifyIsAdmin], satTestController.upda
  *       500:
  *         description: Server error
  */
-router.delete('/satTests/:id', [verifyToken, verifyIsAdmin], satTestController.deleteSatTest);
+router.delete('/satTests/:id', [verifyToken, isAdminOrTeacher], satTestController.deleteSatTest);
 
 /**
  * @swagger

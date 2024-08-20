@@ -60,7 +60,8 @@ exports.createQuestion = async (req, res) => {
             hint: req.body.hint,
             image: imagePath,
             explanation_image: explanationImagePath,
-            explanation: req.body.explanation
+            explanation: req.body.explanation,
+            question_type: req.body.question_type
         });
         res.status(201).send(question);
     } catch (err) {
@@ -71,7 +72,7 @@ exports.createQuestion = async (req, res) => {
 // Get all questions
 exports.findAllQuestions = async (req, res) => {
     try {
-        const questions = await Question.findAll();
+        const questions = await Question.findAll({order: [['question_id', 'ASC']]});
         res.status(200).send(questions);
     } catch (err) {
         res.status(500).send({message: err.message});
@@ -166,7 +167,8 @@ exports.updateQuestion = async (req, res) => {
             hint: req.body.hint,
             image: imagePath,
             explanation_image: explanationImagePath,
-            explanation: req.body.explanation
+            explanation: req.body.explanation,
+            question_type: req.body.question_type
         }, {
             where: {question_id: id}
         });

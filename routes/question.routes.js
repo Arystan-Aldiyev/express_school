@@ -1,6 +1,6 @@
 const express = require('express');
 const router = express.Router();
-const {verifyToken, verifyIsAdmin, verifyIsTeacher} = require('../middleware/authJwt');
+const {verifyToken, verifyIsAdmin, verifyIsTeacher, isAdminOrTeacher} = require('../middleware/authJwt');
 const questionController = require('../controllers/question.controller');
 const {upload} = require("../services/amazon.s3.service");
 
@@ -35,6 +35,8 @@ const {upload} = require("../services/amazon.s3.service");
  *           format: uri
  *         explanation:
  *           type: string
+ *         question_type:
+ *           type: string
  *       example:
  *         test_id: 1
  *         question_text: "<p>If (a, b) is a solution to the following system of inequalities, which of the following represents the minimum value of b?</p><p><code>y &gt; 2(x-3) + 5</code><br><code>y &lt; x + 3</code></p>"
@@ -42,6 +44,7 @@ const {upload} = require("../services/amazon.s3.service");
  *         image: "https://your-cloud-storage-service.com/path-to-your-image.png"
  *         explanation_image: "https://your-cloud-storage-service.com/path-to-your-explanation-image.png"
  *         explanation: "The solution involves finding the intersection of the given inequalities."
+ *         question_type: "Single or Multiple or Writing 3 types"
  * security:
  *   - bearerAuth: []
  *
@@ -68,7 +71,7 @@ const {upload} = require("../services/amazon.s3.service");
  *               items:
  *                 $ref: '#/components/schemas/Question'
  */
-router.get('/questions', [verifyToken, verifyIsAdmin || verifyIsTeacher], questionController.findAllQuestions);
+router.get('/questions', [verifyToken, isAdminOrTeacher], questionController.findAllQuestions);
 
 /**
  * @swagger
@@ -134,7 +137,7 @@ router.get('/questions/:id', [verifyToken], questionController.findOneQuestion);
  *             schema:
  *               $ref: '#/components/schemas/Question'
  */
-router.post('/questions', [verifyToken, verifyIsAdmin || verifyIsTeacher], upload.fields([{
+router.post('/questions', [verifyToken, isAdminOrTeacher], upload.fields([{
     name: 'image',
     maxCount: 1
 }, {name: 'explanation_image', maxCount: 1}]), questionController.createQuestion);
@@ -185,7 +188,7 @@ router.post('/questions', [verifyToken, verifyIsAdmin || verifyIsTeacher], uploa
  *       404:
  *         description: Question not found
  */
-router.put('/questions/:id', [verifyToken, verifyIsAdmin || verifyIsTeacher], upload.fields([{
+router.put('/questions/:id', [verifyToken, isAdminOrTeacher], upload.fields([{
     name: 'image',
     maxCount: 1
 }, {name: 'explanation_image', maxCount: 1}]), questionController.updateQuestion);
@@ -236,7 +239,7 @@ router.put('/questions/:id', [verifyToken, verifyIsAdmin || verifyIsTeacher], up
  *       404:
  *         description: Question not found
  */
-router.patch('/questions/:id', [verifyToken, verifyIsAdmin || verifyIsTeacher], upload.fields([{
+router.patch('/questions/:id', [verifyToken, isAdminOrTeacher], upload.fields([{
     name: 'image',
     maxCount: 1
 }, {name: 'explanation_image', maxCount: 1}]), questionController.patchQuestion);
@@ -262,6 +265,6 @@ router.patch('/questions/:id', [verifyToken, verifyIsAdmin || verifyIsTeacher], 
  *       404:
  *         description: Question not found
  */
-router.delete('/questions/:id', [verifyToken, verifyIsAdmin || verifyIsTeacher], questionController.deleteQuestion);
+router.delete('/questions/:id', [verifyToken, isAdminOrTeacher], questionController.deleteQuestion);
 
 module.exports = router;

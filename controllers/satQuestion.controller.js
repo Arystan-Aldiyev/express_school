@@ -72,6 +72,7 @@ exports.createSatQuestion = async (req, res) => {
             explanation_image: explanationImagePath,
             explanation: req.body.explanation,
             section: req.body.section,
+            question_type: req.body.question_type
         });
         res.status(201).send(question);
     } catch (err) {
@@ -82,7 +83,7 @@ exports.createSatQuestion = async (req, res) => {
 // Get all questions
 exports.findAllQuestions = async (req, res) => {
     try {
-        const questions = await SatQuestion.findAll();
+        const questions = await SatQuestion.findAll({order: [['sat_question_id', 'ASC']]});
         res.status(200).send(questions);
     } catch (err) {
         res.status(500).send({message: err.message});
@@ -96,6 +97,7 @@ exports.findQuestionsBySectionAndTestId = async (req, res) => {
     try {
         const questions = await SatQuestion.findAll({
             where: {section, test_id},
+            order: [['sat_question_id', 'ASC']]
         });
         res.status(200).send(questions);
     } catch (err) {
@@ -110,6 +112,7 @@ exports.findQuestionsByTestId = async (req, res) => {
     try {
         const questions = await SatQuestion.findAll({
             where: {test_id},
+            order: [['sat_question_id', 'ASC']]
         });
         res.status(200).send(questions);
     } catch (err) {
@@ -208,6 +211,7 @@ exports.updateQuestion = async (req, res) => {
                 explanation_image: explanationImagePath,
                 explanation: req.body.explanation,
                 section: req.body.section,
+                question_type: req.body.question_type
             },
             {
                 where: {sat_question_id: id},
@@ -232,10 +236,10 @@ exports.patchQuestion = async (req, res) => {
         const question = await SatQuestion.findByPk(id);
 
         if (!question) {
-            return res.status(404).send({ message: `Cannot update Question with id=${id}. Maybe Question was not found!` });
+            return res.status(404).send({message: `Cannot update Question with id=${id}. Maybe Question was not found!`});
         }
 
-        let updateData = { ...req.body };
+        let updateData = {...req.body};
 
         if (req.files && req.files['image']) {
             if (question.image) {
@@ -290,16 +294,16 @@ exports.patchQuestion = async (req, res) => {
         }
 
         const [num] = await SatQuestion.update(updateData, {
-            where: { sat_question_id: id },
+            where: {sat_question_id: id},
         });
 
         if (num == 1) {
-            res.send({ message: 'Question was updated successfully.' });
+            res.send({message: 'Question was updated successfully.'});
         } else {
-            res.send({ message: `Cannot update Question with id=${id}. Maybe Question was not found or req.body is empty!` });
+            res.send({message: `Cannot update Question with id=${id}. Maybe Question was not found or req.body is empty!`});
         }
     } catch (err) {
-        res.status(500).send({ message: err.message });
+        res.status(500).send({message: err.message});
     }
 };
 

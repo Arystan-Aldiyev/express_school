@@ -32,6 +32,11 @@ module.exports = (sequelize, DataTypes) => {
         explanation_image: {
             type: DataTypes.STRING,
             allowNull: true,
+        },
+        question_type: {
+            type: DataTypes.STRING,
+            allowNull: true,
+            defaultValue: 'single' // 'single' for one correct answer, 'multiple' for multiple correct answers
         }
     }, {
         tableName: 'questions',

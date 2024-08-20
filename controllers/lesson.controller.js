@@ -20,7 +20,11 @@ exports.createLesson = async (req, res) => {
 // Get all Lessons
 exports.getLessons = async (req, res) => {
     try {
-        const lessons = await Lesson.findAll();
+        const lessons = await Lesson.findAll(
+            {
+                order: [['createdAt', 'ASC']]
+            }
+        );
         res.status(200).json(lessons);
     } catch (error) {
         res.status(500).json({error: error.message});
@@ -50,7 +54,7 @@ exports.getLessonsByGroupId = async (req, res) => {
         if (!existingGroup) {
             return res.status(404).json({message: "Group not found"});
         }
-        const lessons = await Lesson.findAll({where: {group_id}});
+        const lessons = await Lesson.findAll({where: {group_id}, order: [['createdAt', 'ASC']]});
         if (lessons.length > 0) {
             res.status(200).json(lessons);
         } else {
@@ -114,7 +118,7 @@ exports.deleteLesson = async (req, res) => {
 exports.getLessonsBySubject = async (req, res) => {
     try {
         const {subject} = req.params;
-        const lessons = await Lesson.findAll({where: {subject}});
+        const lessons = await Lesson.findAll({where: {subject}, order: [['createdAt', 'ASC']]});
         if (lessons.length > 0) {
             res.status(200).json(lessons);
         } else {

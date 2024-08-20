@@ -81,6 +81,19 @@ const verifyIsGroupMember = (req, res, next) => {
     });
 }
 
+const isAdminOrTeacher = (req, res, next) => {
+    if (req.userRole === 'teacher') {
+        return next();
+    }
+
+    if (req.userRole === 'admin') {
+        return next();
+    }
+
+    return res.status(403).send({
+        message: "Require Admin or Teacher role!"
+    });
+}
 const allowTeacherOrAdminOrGroupMember = (req, res, next) => {
     if (req.userRole === 'teacher') {
         return next();
@@ -114,5 +127,6 @@ module.exports = {
     verifyIsStudent,
     isAdminOrOwner,
     verifyIsGroupMember,
+    isAdminOrTeacher,
     allowTeacherOrAdminOrGroupMember
 };

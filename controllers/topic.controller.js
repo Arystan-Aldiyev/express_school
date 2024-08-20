@@ -18,7 +18,7 @@ exports.createTopic = async (req, res) => {
 
 exports.getTopics = async (req, res) => {
     try {
-        const topics = await Topic.findAll();
+        const topics = await Topic.findAll({order: [['topic_id', 'ASC']]});
         res.status(200).json(topics);
     } catch (error) {
         res.status(500).json({error: error.message});
@@ -46,7 +46,7 @@ exports.getTopicsByLessonId = async (req, res) => {
         if (!existingLesson) {
             return res.status(404).json({message: "Lesson not found"});
         }
-        const topics = await Topic.findAll({where: {lesson_id}});
+        const topics = await Topic.findAll({where: {lesson_id}, order: [['topic_id', 'ASC']]});
         if (topics.length > 0) {
             res.status(200).json(topics);
         } else {

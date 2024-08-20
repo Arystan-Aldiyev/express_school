@@ -28,7 +28,8 @@ exports.getSatTestsByGroup = async (req, res) => {
 
     try {
         const satTests = await SatTest.findAll({
-            where: {group_id}
+            where: {group_id},
+            order: [['sat_test_id', 'ASC']]
         });
         res.status(200).json(satTests);
     } catch (error) {
@@ -45,16 +46,19 @@ exports.getSatTestWithDetails = async (req, res) => {
                 {
                     model: SatQuestion,
                     as: 'sat_questions',
-                    attributes: ['sat_question_id', 'question_text', 'section', 'hint', 'image', 'test_id', 'createdAt', 'updatedAt'],
+                    attributes: ['sat_question_id', 'question_text', 'section', 'hint', 'image', 'question_type', 'test_id', 'createdAt', 'updatedAt'],
                     include: [
                         {
                             model: SatAnswerOption,
                             as: 'sat_answer_options',
-                            attributes: {exclude: ['is_correct', 'explanation_image']}
+                            attributes: {exclude: ['is_correct', 'explanation_image']},
+                            order: [['sat_answer_option_id', 'ASC']]
                         }
-                    ]
+                    ],
+                    order: [['sat_question_id', 'ASC']]
                 }
-            ]
+            ],
+            order: [['sat_test_id', 'ASC']]
         });
 
         if (data) {
@@ -72,6 +76,7 @@ exports.getSatTestWithDetails = async (req, res) => {
                         test_id: question.test_id,
                         createdAt: question.createdAt,
                         updatedAt: question.updatedAt,
+                        question_type: question.question_type,
                         answerOptions: question.sat_answer_options
                     },
                 });
@@ -105,7 +110,9 @@ exports.getSatTestById = async (req, res) => {
     const {id} = req.params;
 
     try {
-        const satTest = await SatTest.findByPk(id);
+        const satTest = await SatTest.findByPk(id, {
+            order: [['sat_test_id', 'ASC']]
+        });
         if (!satTest) {
             return res.status(404).json({error: 'SAT test not found'});
         }
@@ -186,8 +193,7 @@ exports.submitSatTest = async (req, res) => {
         });
 
         for (const section in answers) {
-            scores[section] = 0;  // Initialize the score for the section
-
+            scores[section] = 0;
             for (const answer of answers[section]) {
                 const questionId = answer.question_id;
                 const userAnswer = answer.option_id;
@@ -203,10 +209,21 @@ exports.submitSatTest = async (req, res) => {
                     selected_option: userAnswer,
                     sat_attempt_id: attempt.sat_attempt_id
                 });
-
-                const correctOption = question.sat_answer_options.find(option => option.is_correct);
-                if (correctOption && userAnswer === correctOption.sat_answer_option_id) {
-                    scores[section]++;
+                if (question.question_type === 'single' || question.question_type === 'multiply') {
+                    const correctOptions = question.sat_answer_options.filter(option => option.is_correct);
+                    const isCorrect = correctOptions.some(correctOption => userAnswer === correctOption.sat_answer_option_id);
+                    if (isCorrect) {
+                        scores[section]++;
+                    }
+                } else if (question.question_type === 'writing') {
+                    const correctOption = question.sat_answer_options.find(option => option.is_correct);
+                    if (correctOption) {
+                        const normalizedUserAnswer = userAnswer.trim().toLowerCase();
+                        const normalizedCorrectAnswer = correctOption.option_text.trim().toLowerCase();
+                        if (normalizedUserAnswer === normalizedCorrectAnswer) {
+                            scores[section]++;
+                        }
+                    }
                 }
             }
         }

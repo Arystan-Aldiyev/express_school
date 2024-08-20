@@ -1,7 +1,7 @@
 const express = require('express');
 const router = express.Router();
 const lessonController = require('../controllers/lesson.controller');
-const {verifyToken, verifyIsAdmin, verifyIsTeacher} = require('../middleware/authJwt');
+const {verifyToken, verifyIsAdmin, verifyIsTeacher, isAdminOrTeacher} = require('../middleware/authJwt');
 
 /**
  * @swagger
@@ -63,7 +63,7 @@ const {verifyToken, verifyIsAdmin, verifyIsTeacher} = require('../middleware/aut
  *             schema:
  *               $ref: '#/components/schemas/Lesson'
  */
-router.post('/lessons', [verifyToken, verifyIsAdmin || verifyIsTeacher], lessonController.createLesson);
+router.post('/lessons', [verifyToken, isAdminOrTeacher], lessonController.createLesson);
 
 /**
  * @swagger
@@ -221,7 +221,7 @@ router.get('/lessons/subject/:subject', [verifyToken], lessonController.getLesso
  *       409:
  *         description: Subject with that name already exists
  */
-router.put('/lessons/:lesson_id', [verifyToken, verifyIsAdmin || verifyIsTeacher], lessonController.updateLesson);
+router.put('/lessons/:lesson_id', [verifyToken, isAdminOrTeacher], lessonController.updateLesson);
 
 /**
  * @swagger
@@ -244,6 +244,6 @@ router.put('/lessons/:lesson_id', [verifyToken, verifyIsAdmin || verifyIsTeacher
  *       404:
  *         description: Lesson not found
  */
-router.delete('/lessons/:lesson_id', [verifyToken, verifyIsAdmin || verifyIsTeacher], lessonController.deleteLesson);
+router.delete('/lessons/:lesson_id', [verifyToken, isAdminOrTeacher], lessonController.deleteLesson);
 
 module.exports = router;

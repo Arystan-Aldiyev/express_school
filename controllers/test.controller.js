@@ -47,7 +47,9 @@ exports.createTest = async (req, res) => {
 // Retrieve all Tests from the database.
 exports.findAllTest = async (req, res) => {
     try {
-        const data = await Test.findAll();
+        const data = await Test.findAll({
+            order: [['test_id', 'ASC']]
+        });
         res.send(data);
     } catch (err) {
         res.status(500).send({
@@ -68,7 +70,8 @@ exports.findAllTestByGroupId = async (req, res) => {
                 as: 'SuspendTestAnswers',
                 where: {user_id: userId},
                 required: false
-            }]
+            }],
+            order: [['test_id', 'ASC']]
         });
 
         const transformedTests = tests.map(test => {
@@ -100,7 +103,7 @@ exports.getTestsBySubject = async (req, res) => {
     }
 
     try {
-        const tests = await Test.findAll({where: {subject}});
+        const tests = await Test.findAll({where: {subject}, order: [['test_id', 'ASC']]});
         if (tests.length > 0) {
             res.status(200).json(tests);
         } else {
@@ -146,14 +149,16 @@ exports.findTestWithDetails = async (req, res) => {
                 {
                     model: Question,
                     as: 'questions',
-                    attributes: {exclude: ['explanation']},
+                    attributes: {exclude: ['explanation', 'explanation_image']},
                     include: [
                         {
                             model: AnswerOption,
                             as: 'answerOptions',
-                            attributes: {exclude: ['is_correct', 'explanation_image']}
+                            attributes: {exclude: ['is_correct']},
+                            order: [['option_id', 'ASC']]
                         }
-                    ]
+                    ],
+                    order: [['question_id', 'ASC']]
                 }
             ]
         });
@@ -175,23 +180,27 @@ exports.findTestWithDetails = async (req, res) => {
 // Update a Test by the id in the request
 exports.updateTest = async (req, res) => {
     const id = req.params.id;
+    const {subject, group_id, name, time_open, duration_minutes, max_attempts} = req.body;
 
     try {
-        const num = await Test.update(req.body, {
-            where: {test_id: id}
-        });
-        if (num == 1) {
+        const [updatedCount] = await Test.update(
+            {subject, group_id, name, time_open, duration_minutes, max_attempts},
+            {where: {test_id: id}}
+        );
+
+        if (updatedCount === 1) {
             res.send({
                 message: "Test was updated successfully."
             });
         } else {
-            res.send({
-                message: `Cannot update Test with id=${id}. Maybe Test was not found or req.body is empty!`
+            res.status(404).send({
+                message: `Cannot find Test with id=${id}.`
             });
         }
     } catch (err) {
+        console.error(`Error updating Test with id=${id}:`, err);
         res.status(500).send({
-            message: "Error updating Test with id=" + id
+            message: `Error updating Test with id=${id}`
         });
     }
 };
@@ -286,13 +295,27 @@ exports.submitTest = async (req, res) => {
                 attempt_id: attempt.attempt_id
             });
 
-            const correctOption = question.answerOptions.find(option => option.is_correct);
-            console.log("AAAAAAAAAAAAAAAAAA", JSON.stringify(correctOption, null, 2))
-            if (correctOption && userAnswer === correctOption.option_id) {
-                score++;
-                console.log(`Correct answer for question ID: ${questionId}`);
-            } else {
-                console.log(`Incorrect answer for question ID: ${questionId}`);
+            if (question.question_type === 'single' || question.question_type === 'multiply') {
+                const correctOptions = question.answerOptions.filter(option => option.is_correct);
+                const isCorrect = correctOptions.some(correctOption => userAnswer === correctOption.option_id);
+                if (isCorrect) {
+                    score++;
+                    console.log(`Correct answer for question ID: ${questionId}`);
+                } else {
+                    console.log(`Incorrect answer for question ID: ${questionId}`);
+                }
+            } else if (question.question_type === 'writing') {
+                const correctOption = question.answerOptions.find(option => option.is_correct);
+                if (correctOption) {
+                    const normalizedUserAnswer = userAnswer.trim().toLowerCase();
+                    const normalizedCorrectAnswer = correctOption.option_text.trim().toLowerCase();
+                    if (normalizedUserAnswer === normalizedCorrectAnswer) {
+                        score++;
+                        console.log(`Correct answer for writing question ID: ${questionId}`);
+                    } else {
+                        console.log(`Incorrect answer for writing question ID: ${questionId}`);
+                    }
+                }
             }
         }
 
@@ -319,15 +342,16 @@ exports.suspendTest = async (req, res) => {
     const userId = req.userId;
 
     try {
-        // Find the test with associated questions and answer options
         const test = await Test.findOne({
             where: {test_id: testId},
             include: [{
                 model: Question,
                 as: 'questions',
+                order: [['question_id', 'ASC']],
                 include: [{
                     model: AnswerOption,
-                    as: 'answerOptions'
+                    as: 'answerOptions',
+                    order: [['option_id', 'ASC']]
                 }]
             }]
         });
@@ -338,7 +362,6 @@ exports.suspendTest = async (req, res) => {
 
         const suspendTime = new Date();
 
-        // Delete any existing suspended answers for this user and test
         await SuspendTestAnswer.destroy({
             where: {
                 user_id: userId,
@@ -346,7 +369,6 @@ exports.suspendTest = async (req, res) => {
             }
         });
 
-        // Save the new suspend answers
         for (const answer of answers) {
             const questionId = answer.question_id;
             const userAnswer = answer.answer;
@@ -429,7 +451,7 @@ exports.continueSuspendTest = async (req, res) => {
                     question_text: question.question_text,
                     hint: question.hint,
                     image: question.image,
-                    explanation: question.explanation,
+                    question_type: question.question_type,
                     student_answer: suspendAnswer ? suspendAnswer.student_answer : null,
                     answerOptions: question.answerOptions.map(option => ({
                         option_id: option.option_id,

@@ -1,7 +1,7 @@
 const express = require('express');
 const router = express.Router();
 const topicController = require('../controllers/topic.controller');
-const { verifyToken, verifyIsAdmin, verifyIsTeacher } = require('../middleware/authJwt');
+const {verifyToken, verifyIsAdmin, verifyIsTeacher, isAdminOrTeacher} = require('../middleware/authJwt');
 
 /**
  * @swagger
@@ -52,7 +52,7 @@ const { verifyToken, verifyIsAdmin, verifyIsTeacher } = require('../middleware/a
  *             schema:
  *               $ref: '#/components/schemas/Topic'
  */
-router.post('/topics', [verifyToken, verifyIsAdmin || verifyIsTeacher], topicController.createTopic);
+router.post('/topics', [verifyToken, isAdminOrTeacher], topicController.createTopic);
 
 /**
  * @swagger
@@ -161,7 +161,7 @@ router.get('/topics/lesson/:lesson_id', [verifyToken], topicController.getTopics
  *       404:
  *         description: Topic not found
  */
-router.put('/topics/:topic_id', [verifyToken, verifyIsAdmin || verifyIsTeacher], topicController.updateTopic);
+router.put('/topics/:topic_id', [verifyToken, isAdminOrTeacher], topicController.updateTopic);
 
 /**
  * @swagger
@@ -184,6 +184,6 @@ router.put('/topics/:topic_id', [verifyToken, verifyIsAdmin || verifyIsTeacher],
  *       404:
  *         description: Topic not found
  */
-router.delete('/topics/:topic_id', [verifyToken, verifyIsAdmin || verifyIsTeacher], topicController.deleteTopic);
+router.delete('/topics/:topic_id', [verifyToken, isAdminOrTeacher], topicController.deleteTopic);
 
 module.exports = router;

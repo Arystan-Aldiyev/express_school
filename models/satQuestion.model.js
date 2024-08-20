@@ -37,6 +37,11 @@ module.exports = (sequelize, DataTypes) => {
             },
             onDelete: 'CASCADE'
         },
+        question_type: {
+            type: DataTypes.STRING,
+            allowNull: true,
+            defaultValue: 'single' // 'single' for one correct answer, 'multiple' for multiple correct answers
+        }
     }, {
         tableName: 'sat_questions',
         timestamps: true,

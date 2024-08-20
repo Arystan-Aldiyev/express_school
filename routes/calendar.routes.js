@@ -1,7 +1,7 @@
 const express = require('express');
 const router = express.Router();
 const calendarController = require('../controllers/calendar.controller');
-const {verifyToken, verifyIsAdmin, verifyIsTeacher} = require("../middleware/authJwt");
+const {verifyToken, verifyIsAdmin, verifyIsTeacher, isAdminOrTeacher} = require("../middleware/authJwt");
 
 /**
  * @swagger
@@ -73,7 +73,7 @@ const {verifyToken, verifyIsAdmin, verifyIsTeacher} = require("../middleware/aut
  *             schema:
  *               $ref: '#/components/schemas/Calendar'
  */
-router.post('/calendars', [verifyToken, verifyIsAdmin || verifyIsTeacher], calendarController.createCalendar);
+router.post('/calendars', [verifyToken, isAdminOrTeacher], calendarController.createCalendar);
 
 /**
  * @swagger
@@ -181,7 +181,7 @@ router.get('/calendars/calendar/:calendar_id', calendarController.getCalendarByI
  *       404:
  *         description: Calendar not found
  */
-router.put('/calendars/:calendar_id', [verifyToken, verifyIsAdmin || verifyIsTeacher], calendarController.updateCalendar);
+router.put('/calendars/:calendar_id', [verifyToken, isAdminOrTeacher], calendarController.updateCalendar);
 
 /**
  * @swagger
@@ -204,6 +204,6 @@ router.put('/calendars/:calendar_id', [verifyToken, verifyIsAdmin || verifyIsTea
  *       404:
  *         description: Calendar not found
  */
-router.delete('/calendars/:calendar_id', [verifyToken, verifyIsAdmin || verifyIsTeacher], calendarController.deleteCalendar);
+router.delete('/calendars/:calendar_id', [verifyToken, isAdminOrTeacher], calendarController.deleteCalendar);
 
 module.exports = router;

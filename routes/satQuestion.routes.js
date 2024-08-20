@@ -1,8 +1,8 @@
 const express = require('express');
 const router = express.Router();
-const { verifyToken, verifyIsAdmin, verifyIsTeacher } = require('../middleware/authJwt');
+const {verifyToken, verifyIsAdmin, verifyIsTeacher, isAdminOrTeacher} = require('../middleware/authJwt');
 const satQuestionController = require('../controllers/satQuestion.controller');
-const { upload } = require("../services/amazon.s3.service");
+const {upload} = require("../services/amazon.s3.service");
 
 /**
  * @swagger
@@ -38,6 +38,8 @@ const { upload } = require("../services/amazon.s3.service");
  *           type: string
  *         section:
  *           type: string
+ *         question_type:
+ *           type: string
  *       example:
  *         question_id: 1
  *         test_id: 1
@@ -47,6 +49,7 @@ const { upload } = require("../services/amazon.s3.service");
  *         explanation_image: "https://example.com/explanation_image.png"
  *         explanation: "The sum of 2 and 2 is 4"
  *         section: "Math"
+ *         question_type: "Single or Multiple or Writing 3 types"
  *
  * security:
  *   - bearerAuth: []
@@ -87,6 +90,8 @@ const { upload } = require("../services/amazon.s3.service");
  *                 type: string
  *               section:
  *                 type: string
+ *               question_type:
+ *                 type: string
  *     responses:
  *       201:
  *         description: Question created
@@ -97,7 +102,10 @@ const { upload } = require("../services/amazon.s3.service");
  *       500:
  *         description: Server error
  */
-router.post('/satQuestions', [verifyToken, verifyIsAdmin || verifyIsTeacher], upload.fields([{ name: 'image', maxCount: 1 }, { name: 'explanation_image', maxCount: 1 }]), satQuestionController.createSatQuestion);
+router.post('/satQuestions', [verifyToken, isAdminOrTeacher], upload.fields([{
+    name: 'image',
+    maxCount: 1
+}, {name: 'explanation_image', maxCount: 1}]), satQuestionController.createSatQuestion);
 
 /**
  * @swagger
@@ -264,7 +272,10 @@ router.get('/satQuestions/:id', [verifyToken], satQuestionController.findOneQues
  *       500:
  *         description: Server error
  */
-router.put('/satQuestions/:id', [verifyToken, verifyIsAdmin || verifyIsTeacher], upload.fields([{ name: 'image', maxCount: 1 }, { name: 'explanation_image', maxCount: 1 }]), satQuestionController.updateQuestion);
+router.put('/satQuestions/:id', [verifyToken, isAdminOrTeacher], upload.fields([{
+    name: 'image',
+    maxCount: 1
+}, {name: 'explanation_image', maxCount: 1}]), satQuestionController.updateQuestion);
 
 /**
  * @swagger
@@ -316,7 +327,10 @@ router.put('/satQuestions/:id', [verifyToken, verifyIsAdmin || verifyIsTeacher],
  *       500:
  *         description: Server error
  */
-router.patch('/satQuestions/:id', [verifyToken, verifyIsAdmin || verifyIsTeacher], upload.fields([{ name: 'image', maxCount: 1 }, { name: 'explanation_image', maxCount: 1 }]), satQuestionController.patchQuestion);
+router.patch('/satQuestions/:id', [verifyToken, isAdminOrTeacher], upload.fields([{
+    name: 'image',
+    maxCount: 1
+}, {name: 'explanation_image', maxCount: 1}]), satQuestionController.patchQuestion);
 
 /**
  * @swagger
@@ -341,6 +355,6 @@ router.patch('/satQuestions/:id', [verifyToken, verifyIsAdmin || verifyIsTeacher
  *       500:
  *         description: Server error
  */
-router.delete('/satQuestions/:id', [verifyToken, verifyIsAdmin || verifyIsTeacher], satQuestionController.deleteQuestion);
+router.delete('/satQuestions/:id', [verifyToken, isAdminOrTeacher], satQuestionController.deleteQuestion);
 
 module.exports = router;

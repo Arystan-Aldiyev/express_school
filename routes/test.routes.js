@@ -1,6 +1,6 @@
 const express = require('express');
 const router = express.Router();
-const {verifyToken, verifyIsAdmin, verifyIsTeacher} = require('../middleware/authJwt');
+const {verifyToken, verifyIsAdmin, verifyIsTeacher, isAdminOrTeacher} = require('../middleware/authJwt');
 const testController = require('../controllers/test.controller');
 
 /**
@@ -108,6 +108,35 @@ const testController = require('../controllers/test.controller');
  *                 question_id: 1
  *                 option_text: "Option B"
  *                 is_correct: false
+ *     TestDetail:
+ *       type: object
+ *       required:
+ *         - name
+ *         - subject
+ *       properties:
+ *         test_id:
+ *           type: integer
+ *         group_id:
+ *           type: integer
+ *         name:
+ *           type: string
+ *         subject:
+ *           type: string
+ *         time_open:
+ *           type: string
+ *           format: date-time
+ *         duration_minutes:
+ *           type: integer
+ *         max_attempts:
+ *           type: integer
+ *       example:
+ *         test_id: 1
+ *         group_id: 1
+ *         name: "Sample Test"
+ *         subject: "Mathematics"
+ *         time_open: "2024-05-25T08:00:00Z"
+ *         duration_minutes: 60
+ *         max_attempts: 3
  *     SubmitTest:
  *       type: object
  *       required:
@@ -185,7 +214,7 @@ const testController = require('../controllers/test.controller');
  *             schema:
  *               type: array
  *               items:
- *                 $ref: '#/components/schemas/Test'
+ *                 $ref: '#/components/schemas/TestDetail'
  */
 router.get('/tests', [verifyToken], testController.findAllTest);
 
@@ -210,7 +239,7 @@ router.get('/tests', [verifyToken], testController.findAllTest);
  *         content:
  *           application/json:
  *             schema:
- *               $ref: '#/components/schemas/Test'
+ *               $ref: '#/components/schemas/TestDetail'
  *       404:
  *         description: Test not found
  */
@@ -256,16 +285,16 @@ router.get('/tests/:id/details', [verifyToken], testController.findTestWithDetai
  *       content:
  *         application/json:
  *           schema:
- *             $ref: '#/components/schemas/Test'
+ *             $ref: '#/components/schemas/TestDetail'
  *     responses:
  *       201:
  *         description: Test created
  *         content:
  *           application/json:
  *             schema:
- *               $ref: '#/components/schemas/Test'
+ *               $ref: '#/components/schemas/TestDetail'
  */
-router.post('/tests', [verifyToken, verifyIsAdmin || verifyIsTeacher], testController.createTest);
+router.post('/tests', [verifyToken, isAdminOrTeacher], testController.createTest);
 
 /**
  * @swagger
@@ -287,18 +316,18 @@ router.post('/tests', [verifyToken, verifyIsAdmin || verifyIsTeacher], testContr
  *       content:
  *         application/json:
  *           schema:
- *             $ref: '#/components/schemas/Test'
+ *             $ref: '#/components/schemas/TestDetail'
  *     responses:
  *       200:
  *         description: Test updated successfully
  *         content:
  *           application/json:
  *             schema:
- *               $ref: '#/components/schemas/Test'
+ *               $ref: '#/components/schemas/TestDetail'
  *       404:
  *         description: Test not found
  */
-router.put('/tests/:id', [verifyToken, verifyIsAdmin || verifyIsTeacher], testController.updateTest);
+router.put('/tests/:id', [verifyToken, isAdminOrTeacher], testController.updateTest);
 
 /**
  * @swagger
@@ -321,7 +350,7 @@ router.put('/tests/:id', [verifyToken, verifyIsAdmin || verifyIsTeacher], testCo
  *       404:
  *         description: Test not found
  */
-router.delete('/tests/:id', [verifyToken, verifyIsAdmin || verifyIsTeacher], testController.deleteTest);
+router.delete('/tests/:id', [verifyToken, isAdminOrTeacher], testController.deleteTest);
 
 /**
  * @swagger
@@ -419,7 +448,7 @@ router.post('/tests/:id/submit', [verifyToken], testController.submitTest);
  *             schema:
  *               type: array
  *               items:
- *                 $ref: '#/components/schemas/Test'
+ *                 $ref: '#/components/schemas/TestDetail'
  *       404:
  *         description: No tests found for this group
  */
@@ -448,7 +477,7 @@ router.get('/tests/group/:group_id', [verifyToken], testController.findAllTestBy
  *             schema:
  *               type: array
  *               items:
- *                 $ref: '#/components/schemas/Test'
+ *                 $ref: '#/components/schemas/TestDetail'
  *       400:
  *         description: Bad request, subject parameter is missing
  *         content:

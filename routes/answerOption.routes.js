@@ -1,6 +1,6 @@
 const express = require('express');
 const router = express.Router();
-const {verifyToken, verifyIsAdmin, verifyIsTeacher} = require('../middleware/authJwt');
+const {verifyToken, verifyIsAdmin, verifyIsTeacher, isAdminOrTeacher} = require('../middleware/authJwt');
 const answerOptionController = require('../controllers/answerOption.controller');
 
 /**
@@ -77,7 +77,7 @@ const answerOptionController = require('../controllers/answerOption.controller')
  *             schema:
  *               $ref: '#/components/schemas/AnswerOptionResponse'
  */
-router.post('/answerOptions', [verifyToken, verifyIsAdmin || verifyIsTeacher], answerOptionController.createAnswerOption);
+router.post('/answerOptions', [verifyToken, isAdminOrTeacher], answerOptionController.createAnswerOption);
 
 /**
  * @swagger
@@ -106,7 +106,7 @@ router.post('/answerOptions', [verifyToken, verifyIsAdmin || verifyIsTeacher], a
  *             schema:
  *               $ref: '#/components/schemas/AnswerOptions'
  */
-router.post('/answerOptions/bulk', [verifyToken, verifyIsAdmin || verifyIsTeacher], answerOptionController.createAnswerOptionsBulk);
+router.post('/answerOptions/bulk', [verifyToken, isAdminOrTeacher], answerOptionController.createAnswerOptionsBulk);
 
 /**
  * @swagger
@@ -133,7 +133,7 @@ router.post('/answerOptions/bulk', [verifyToken, verifyIsAdmin || verifyIsTeache
  *               items:
  *                 $ref: '#/components/schemas/AnswerOptionResponse'
  */
-router.get('/questions/:question_id/answerOptions/admins', [verifyToken, verifyIsAdmin || verifyIsTeacher], answerOptionController.findAllAnswerOptionsForAdmin);
+router.get('/questions/:question_id/answerOptions/admins', [verifyToken, isAdminOrTeacher], answerOptionController.findAllAnswerOptionsForAdmin);
 
 /**
  * @swagger
@@ -187,7 +187,7 @@ router.get('/questions/:question_id/answerOptions', [verifyToken], answerOptionC
  *       404:
  *         description: Answer option not found
  */
-router.get('/answerOptions/:id', [verifyToken, verifyIsAdmin || verifyIsTeacher], answerOptionController.findOneAnswerOption);
+router.get('/answerOptions/:id', [verifyToken, isAdminOrTeacher], answerOptionController.findOneAnswerOption);
 
 /**
  * @swagger
@@ -220,7 +220,7 @@ router.get('/answerOptions/:id', [verifyToken, verifyIsAdmin || verifyIsTeacher]
  *       404:
  *         description: Answer option not found
  */
-router.put('/answerOptions/:id', [verifyToken, verifyIsAdmin || verifyIsTeacher], answerOptionController.updateAnswerOption);
+router.put('/answerOptions/:id', [verifyToken, isAdminOrTeacher], answerOptionController.updateAnswerOption);
 
 /**
  * @swagger
@@ -243,7 +243,7 @@ router.put('/answerOptions/:id', [verifyToken, verifyIsAdmin || verifyIsTeacher]
  *       404:
  *         description: Answer option not found
  */
-router.delete('/answerOptions/:id', [verifyToken, verifyIsAdmin || verifyIsTeacher], answerOptionController.deleteAnswerOption);
+router.delete('/answerOptions/:id', [verifyToken, isAdminOrTeacher], answerOptionController.deleteAnswerOption);
 
 /**
  * @swagger
@@ -264,6 +264,6 @@ router.delete('/answerOptions/:id', [verifyToken, verifyIsAdmin || verifyIsTeach
  *       200:
  *         description: All answer options deleted successfully
  */
-router.delete('/questions/:question_id/answerOptions', [verifyToken, verifyIsAdmin || verifyIsTeacher], answerOptionController.deleteAllAnswerOptions);
+router.delete('/questions/:question_id/answerOptions', [verifyToken, isAdminOrTeacher], answerOptionController.deleteAllAnswerOptions);
 
 module.exports = router;

@@ -14,7 +14,7 @@ module.exports = (sequelize, DataTypes) => {
             onDelete: 'CASCADE'
         },
         option_text: {
-            type: DataTypes.STRING,
+            type: DataTypes.TEXT,
             allowNull: false
         },
         is_correct: {

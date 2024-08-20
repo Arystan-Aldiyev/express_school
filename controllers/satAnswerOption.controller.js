@@ -81,7 +81,7 @@ exports.createAnswerOptionsBulk = async (req, res) => {
 exports.findAllAnswerOptionsForAdmin = (req, res) => {
     const {question_id} = req.params;
 
-    SatAnswerOption.findAll({where: {question_id}})
+    SatAnswerOption.findAll({where: {question_id}, order: [['sat_answer_option_id', 'ASC']]})
         .then((data) => {
             res.send(data);
         })
@@ -96,7 +96,7 @@ exports.findAllAnswerOptionsForAdmin = (req, res) => {
 exports.findAllAnswerOptions = (req, res) => {
     const {question_id} = req.params;
 
-    SatAnswerOption.findAll({where: {question_id}})
+    SatAnswerOption.findAll({where: {question_id}, order: [['sat_answer_option_id', 'ASC']]})
         .then((data) => {
             const filteredData = data.map((option) => ({
                 sat_answer_option_id: option.sat_answer_option_id,

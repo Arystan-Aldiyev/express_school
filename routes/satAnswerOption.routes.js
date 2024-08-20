@@ -1,6 +1,6 @@
 const express = require('express');
 const router = express.Router();
-const {verifyToken, verifyIsAdmin, verifyIsTeacher} = require('../middleware/authJwt');
+const {verifyToken, verifyIsAdmin, verifyIsTeacher, isAdminOrTeacher} = require('../middleware/authJwt');
 const satAnswerOptionController = require('../controllers/satAnswerOption.controller');
 
 /**
@@ -66,7 +66,7 @@ const satAnswerOptionController = require('../controllers/satAnswerOption.contro
  *       500:
  *         description: Server error
  */
-router.post('/satAnswerOptions', [verifyToken, verifyIsAdmin || verifyIsTeacher], satAnswerOptionController.createAnswerOption);
+router.post('/satAnswerOptions', [verifyToken, isAdminOrTeacher], satAnswerOptionController.createAnswerOption);
 
 /**
  * @swagger
@@ -122,7 +122,7 @@ router.post('/satAnswerOptions', [verifyToken, verifyIsAdmin || verifyIsTeacher]
  *       500:
  *         description: Server error
  */
-router.post('/satAnswerOptions/bulk', [verifyToken, verifyIsAdmin || verifyIsTeacher], satAnswerOptionController.createAnswerOptionsBulk);
+router.post('/satAnswerOptions/bulk', [verifyToken, isAdminOrTeacher], satAnswerOptionController.createAnswerOptionsBulk);
 
 /**
  * @swagger
@@ -217,7 +217,7 @@ router.get('/satAnswerOptions/:id', [verifyToken], satAnswerOptionController.fin
  *       500:
  *         description: Server error
  */
-router.put('/satAnswerOptions/:id', [verifyToken, verifyIsAdmin || verifyIsTeacher], satAnswerOptionController.updateAnswerOption);
+router.put('/satAnswerOptions/:id', [verifyToken, isAdminOrTeacher], satAnswerOptionController.updateAnswerOption);
 
 /**
  * @swagger
@@ -242,7 +242,7 @@ router.put('/satAnswerOptions/:id', [verifyToken, verifyIsAdmin || verifyIsTeach
  *       500:
  *         description: Server error
  */
-router.delete('/satAnswerOptions/:id', [verifyToken, verifyIsAdmin || verifyIsTeacher], satAnswerOptionController.deleteAnswerOption);
+router.delete('/satAnswerOptions/:id', [verifyToken, isAdminOrTeacher], satAnswerOptionController.deleteAnswerOption);
 
 /**
  * @swagger
@@ -265,6 +265,6 @@ router.delete('/satAnswerOptions/:id', [verifyToken, verifyIsAdmin || verifyIsTe
  *       500:
  *         description: Server error
  */
-router.delete('/satAnswerOptions/question/:question_id/clear', [verifyToken, verifyIsAdmin || verifyIsTeacher], satAnswerOptionController.deleteAllAnswerOptions);
+router.delete('/satAnswerOptions/question/:question_id/clear', [verifyToken, isAdminOrTeacher], satAnswerOptionController.deleteAllAnswerOptions);
 
 module.exports = router;

@@ -4,8 +4,7 @@ const {
     verifyToken,
     verifyIsAdmin,
     verifyIsTeacher,
-    verifyIsGroupMember,
-    allowTeacherOrAdminOrGroupMember
+    allowTeacherOrAdminOrGroupMember, isAdminOrTeacher
 } = require('../middleware/authJwt');
 const groupController = require('../controllers/group.controller');
 
@@ -157,7 +156,7 @@ const groupController = require('../controllers/group.controller');
 // Retrieve a list of all groups
 router.get(
     "/groups",
-    [verifyToken, verifyIsAdmin || verifyIsTeacher],
+    [verifyToken, isAdminOrTeacher],
     groupController.getAllGroups
 );
 
@@ -168,21 +167,21 @@ router.get("/groups/:id", verifyToken, allowTeacherOrAdminOrGroupMember, groupCo
 // Create a new group
 router.post(
     "/groups",
-    [verifyToken, verifyIsAdmin || verifyIsTeacher],
+    [verifyToken, isAdminOrTeacher],
     groupController.createGroup
 );
 
 // Update a specific group
 router.put(
     "/groups/:id",
-    [verifyToken, verifyIsAdmin || verifyIsTeacher],
+    [verifyToken, isAdminOrTeacher],
     groupController.updateGroup
 );
 
 // Delete a specific group
 router.delete(
     "/groups/:id",
-    [verifyToken, verifyIsAdmin || verifyIsTeacher],
+    [verifyToken, isAdminOrTeacher],
     groupController.deleteGroup
 );
 

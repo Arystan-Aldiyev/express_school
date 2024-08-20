@@ -1,6 +1,9 @@
 const express = require('express');
 const router = express.Router();
-const { verifyToken, verifyIsAdmin, verifyIsTeacher, verifyIsGroupMember, verifyIsStudent } = require('../middleware/authJwt');
+const {
+    verifyToken,
+    isAdminOrTeacher
+} = require('../middleware/authJwt');
 const membershipController = require('../controllers/groupMembership.controller');
 
 /**
@@ -11,10 +14,10 @@ const membershipController = require('../controllers/groupMembership.controller'
  *       type: http
  *       scheme: bearer
  *       bearerFormat: JWT
- * 
+ *
  * security:
  *   - bearerAuth: []
- * 
+ *
  * /api/groups/{id}/memberships:
  *   get:
  *     summary: Retrieve a list of memberships in a specific group
@@ -43,7 +46,7 @@ const membershipController = require('../controllers/groupMembership.controller'
  *         description: Forbidden
  *       404:
  *         description: Group not found
- * 
+ *
  *   post:
  *     summary: Add a member to a group
  *     tags: [Memberships]
@@ -76,7 +79,7 @@ const membershipController = require('../controllers/groupMembership.controller'
  *         description: Group or user not found
  *       500:
  *         description: Internal Server Error
- * 
+ *
  * /api/groups/join:
  *   post:
  *     summary: Join a group by invite code
@@ -107,7 +110,7 @@ const membershipController = require('../controllers/groupMembership.controller'
  *         description: Invalid invite code or user not found
  *       500:
  *         description: Internal Server Error
- * 
+ *
  * /api/groups/{id}/memberships/{membership_id}:
  *   delete:
  *     summary: Remove a member from a group
@@ -142,30 +145,30 @@ const membershipController = require('../controllers/groupMembership.controller'
 
 // Retrieve memberships in a specific group
 router.get(
-  "/groups/:id/memberships",
-  [verifyToken],
-  membershipController.getGroupMemberships
+    "/groups/:id/memberships",
+    [verifyToken],
+    membershipController.getGroupMemberships
 );
 
 // Add a member to a group
 router.post(
-  "/groups/:id/memberships",
-  [verifyToken,( verifyIsAdmin || verifyIsTeacher)],
-  membershipController.addGroupMember
+    "/groups/:id/memberships",
+    [verifyToken, isAdminOrTeacher],
+    membershipController.addGroupMember
 );
 
 // Add a member to a group by invite code
 router.post(
-  "/groups/join",
-  [verifyToken, (verifyIsAdmin || verifyIsStudent || verifyIsTeacher)],
-  membershipController.joinGroupByInviteCode
+    "/groups/join",
+    [verifyToken],
+    membershipController.joinGroupByInviteCode
 );
 
 // Remove a member from a group
 router.delete(
-  "/groups/:id/memberships/:membership_id",
-  [verifyToken,(verifyIsAdmin || verifyIsTeacher)],
-  membershipController.removeGroupMember
+    "/groups/:id/memberships/:membership_id",
+    [verifyToken, isAdminOrTeacher],
+    membershipController.removeGroupMember
 );
 
 module.exports = router;
