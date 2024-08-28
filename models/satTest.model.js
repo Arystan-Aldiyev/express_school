@@ -9,10 +9,6 @@ module.exports = (sequelize, DataTypes) => {
             type: DataTypes.TEXT,
             allowNull: false,
         },
-        group_id: {
-            type: DataTypes.INTEGER,
-            allowNull: false,
-        },
         opens: {
             type: DataTypes.DATE,
             allowNull: false,

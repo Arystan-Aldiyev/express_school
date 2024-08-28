@@ -16,7 +16,6 @@ const satTestController = require('../controllers/satTest.controller');
  *       type: object
  *       required:
  *         - name
- *         - group_id
  *         - opens
  *         - due
  *       properties:
@@ -24,8 +23,6 @@ const satTestController = require('../controllers/satTest.controller');
  *           type: integer
  *         name:
  *           type: string
- *         group_id:
- *           type: integer
  *         opens:
  *           type: string
  *           format: date-time
@@ -35,7 +32,6 @@ const satTestController = require('../controllers/satTest.controller');
  *       example:
  *         sat_test_id: 1
  *         name: "Math Test"
- *         group_id: 1
  *         opens: "2024-07-21T09:00:00Z"
  *         due: "2024-07-21T11:00:00Z"
  *     SatAnswer:
@@ -111,19 +107,12 @@ router.post('/satTests', [verifyToken, isAdminOrTeacher], satTestController.crea
 
 /**
  * @swagger
- * /api/satTests/group/{group_id}:
+ * /api/satTests:
  *   get:
  *     summary: Retrieve all SAT tests by group ID
  *     tags: [SAT Tests]
  *     security:
  *       - bearerAuth: []
- *     parameters:
- *       - in: path
- *         name: group_id
- *         schema:
- *           type: integer
- *         required: true
- *         description: The ID of the group
  *     responses:
  *       200:
  *         description: A list of SAT tests
@@ -136,7 +125,7 @@ router.post('/satTests', [verifyToken, isAdminOrTeacher], satTestController.crea
  *       500:
  *         description: Server error
  */
-router.get('/satTests/group/:group_id', [verifyToken], satTestController.getSatTestsByGroup);
+router.get('/satTests', [verifyToken], satTestController.getAllSatTests);
 
 /**
  * @swagger
@@ -194,8 +183,6 @@ router.get('/satTests/:id', [verifyToken], satTestController.getSatTestById);
  *                   type: integer
  *                 name:
  *                   type: string
- *                 group_id:
- *                   type: integer
  *                 opens:
  *                   type: string
  *                   format: date-time

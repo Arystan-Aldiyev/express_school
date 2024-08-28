@@ -7,12 +7,11 @@ const SatQuestion = db.satQuestion;
 const SatAnswerOption = db.satAnswerOption;
 
 exports.createSatTest = async (req, res) => {
-    const {name, group_id, opens, due} = req.body;
+    const {name, opens, due} = req.body;
 
     try {
         const satTest = await SatTest.create({
             name,
-            group_id,
             opens,
             due,
         });
@@ -22,20 +21,17 @@ exports.createSatTest = async (req, res) => {
     }
 };
 
-// Get all SAT tests by group ID
-exports.getSatTestsByGroup = async (req, res) => {
-    const {group_id} = req.params;
 
+exports.getAllSatTests = async (req, res) => {
     try {
-        const satTests = await SatTest.findAll({
-            where: {group_id},
-            order: [['sat_test_id', 'ASC']]
-        });
+        const satTests = await SatTest.findAll();
         res.status(200).json(satTests);
     } catch (error) {
-        res.status(500).json({error: error.message});
+        console.error(error);
+        res.status(500).json({error: "An error occurred while fetching SAT tests"});
     }
-};
+}
+
 
 exports.getSatTestWithDetails = async (req, res) => {
     const {id} = req.params;
@@ -85,7 +81,6 @@ exports.getSatTestWithDetails = async (req, res) => {
 
             res.status(200).json({
                 name: data.name,
-                group_id: data.group_id,
                 opens: data.opens,
                 due: data.due,
                 createdAt: data.createdAt,
@@ -125,7 +120,7 @@ exports.getSatTestById = async (req, res) => {
 // Update a SAT test by ID
 exports.updateSatTest = async (req, res) => {
     const {id} = req.params;
-    const {name, group_id, opens, due} = req.body;
+    const {name, opens, due} = req.body;
 
     try {
         const satTest = await SatTest.findByPk(id);
@@ -134,7 +129,6 @@ exports.updateSatTest = async (req, res) => {
         }
 
         satTest.name = name;
-        satTest.group_id = group_id;
         satTest.opens = opens;
         satTest.due = due;
         await satTest.save();
