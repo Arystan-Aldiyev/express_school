@@ -51,14 +51,14 @@ exports.findAllTest = async (req, res) => {
             order: [['test_id', 'ASC']]
         });
 
-        res.send({
-            data: data.map(d => {
+        res.send(
+            data.map(d => {
                 return {
                     ...d.toJSON(),
                     is_open: new Date(d.time_open) <= new Date()
                 }
             })
-        });
+        );
     } catch (err) {
         res.status(500).send({
             message: err.message || "Some error occurred while retrieving tests."
