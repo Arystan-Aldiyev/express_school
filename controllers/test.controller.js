@@ -1,5 +1,4 @@
 const db = require("../models");
-const {awsRegion} = require("../config/aws.config");
 const Group = db.group;
 const Test = db.test;
 const Question = db.question;
@@ -7,6 +6,7 @@ const AnswerOption = db.answerOption;
 const Attempt = db.attempt;
 const Answer = db.answer;
 const SuspendTestAnswer = db.suspendTestAnswer;
+const User = db.user
 
 // Create and Save a new Test
 exports.createTest = async (req, res) => {
@@ -50,7 +50,15 @@ exports.findAllTest = async (req, res) => {
         const data = await Test.findAll({
             order: [['test_id', 'ASC']]
         });
-        res.send(data);
+
+        res.send({
+            data: data.map(d => {
+                return {
+                    ...d.toJSON(),
+                    is_open: new Date(d.time_open) <= new Date()
+                }
+            })
+        });
     } catch (err) {
         res.status(500).send({
             message: err.message || "Some error occurred while retrieving tests."
@@ -142,6 +150,7 @@ exports.findOneTest = async (req, res) => {
 
 exports.findTestWithDetails = async (req, res) => {
     const id = req.params.id;
+    const userId = req.userId
 
     try {
         const data = await Test.findByPk(id, {
@@ -162,6 +171,10 @@ exports.findTestWithDetails = async (req, res) => {
                 }
             ]
         });
+        const user = await User.findByPk(userId)
+        if (new Date(data.time_open) > new Date() && user.role.toLowerCase() === 'student') {
+            return res.status(200).json({message: "Test is not yet open"});
+        }
         if (data) {
             res.send(data);
         } else {
@@ -249,6 +262,10 @@ exports.submitTest = async (req, res) => {
 
         if (!test) {
             return res.status(404).json({message: 'Test not found'});
+        }
+        const user = await User.findByPk(userId)
+        if (new Date(test.time_open) > new Date() && user.role.toLowerCase() === 'student') {
+            return res.status(200).json({message: "Test is not yet open"});
         }
 
         const attemptsCount = await Attempt.count({

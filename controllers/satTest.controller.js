@@ -5,6 +5,7 @@ const SatAttempt = db.satAttempt;
 const SatAnswer = db.satAnswer;
 const SatQuestion = db.satQuestion;
 const SatAnswerOption = db.satAnswerOption;
+const User = db.user
 
 exports.createSatTest = async (req, res) => {
     const {name, opens, due} = req.body;
@@ -23,18 +24,34 @@ exports.createSatTest = async (req, res) => {
 
 
 exports.getAllSatTests = async (req, res) => {
+    const userId = req.userId;
     try {
+        const user = await User.findByPk(userId);
         const satTests = await SatTest.findAll();
-        res.status(200).json(satTests);
+        if (user.role.toLowerCase() !== 'student') {
+            return res.status(200).json(satTests);
+        }
+
+        const filteredTests = satTests.filter(test => {
+            const isExpired = test.due && new Date(test.due) < Date.now();
+            if (isExpired) return false;
+
+            const isOpen = test.opens && Date.now() >= new Date(test.opens);
+            test.dataValues.isOpen = isOpen;
+            return isOpen;
+        });
+
+        return res.status(200).json(filteredTests);
     } catch (error) {
         console.error(error);
-        res.status(500).json({error: "An error occurred while fetching SAT tests"});
+        return res.status(500).json({error: "An error occurred while fetching SAT tests"});
     }
-}
+};
 
 
 exports.getSatTestWithDetails = async (req, res) => {
     const {id} = req.params;
+    const userId = req.userId
 
     try {
         const data = await SatTest.findByPk(id, {
@@ -56,6 +73,13 @@ exports.getSatTestWithDetails = async (req, res) => {
             ],
             order: [['sat_test_id', 'ASC']]
         });
+        const user = await User.findByPk(userId);
+
+        const isOpened = data.opens && new Date(data.opens) >= Date.now()
+
+        if (isOpened && user.role.toLowerCase() === 'student') {
+            return res.status(400).json({message: "Test has not yet opened or"})
+        }
 
         if (data) {
             const sections = data.sat_questions.reduce((acc, question) => {
@@ -103,11 +127,20 @@ exports.getSatTestWithDetails = async (req, res) => {
 // Get a single SAT test by ID
 exports.getSatTestById = async (req, res) => {
     const {id} = req.params;
+    const userId = req.userId
 
     try {
         const satTest = await SatTest.findByPk(id, {
             order: [['sat_test_id', 'ASC']]
         });
+        const user = await User.findByPk(userId);
+
+        const isOpened = satTest.opens && new Date(satTest.opens) >= Date.now()
+
+        if (isOpened && user.role.toLowerCase() === 'student') {
+            return res.status(400).json({message: "Test has not yet opened or"})
+        }
+
         if (!satTest) {
             return res.status(404).json({error: 'SAT test not found'});
         }
@@ -175,10 +208,19 @@ exports.submitSatTest = async (req, res) => {
             }]
         });
 
+
         if (!test) {
             return res.status(404).json({message: 'Test not found'});
         }
-
+        const user = await User.findByPk(userId)
+        const isExpired = test.due && new Date(test.due) < Date.now();
+        const isOpened = test.opens && new Date(test.opens) >= Date.now()
+        if (isExpired && user.role.toLowerCase() === 'student') {
+            return res.status(400).json({message: "Test has expired"});
+        }
+        if (isOpened && user.role.toLowerCase() === 'student') {
+            return res.status(400).json({message: "Test has not yet opened or"})
+        }
         const scores = {};
         const attempt = await SatAttempt.create({
             test_id: testId,
