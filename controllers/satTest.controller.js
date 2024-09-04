@@ -28,20 +28,30 @@ exports.getAllSatTests = async (req, res) => {
     try {
         const user = await User.findByPk(userId);
         const satTests = await SatTest.findAll();
+
         if (user.role.toLowerCase() !== 'student') {
-            return res.status(200).json(satTests);
+            return res.status(200).json({
+                data: satTests.map(test => ({
+                    ...test.toJSON(),
+                    is_open: new Date(test.opens) <= new Date(),
+                    is_expired: test.due ? new Date(test.due) < new Date() : false
+                }))
+            });
         }
 
         const filteredTests = satTests.filter(test => {
-            const isExpired = test.due && new Date(test.due) < Date.now();
-            if (isExpired) return false;
-
-            const isOpen = test.opens && Date.now() >= new Date(test.opens);
-            test.dataValues.isOpen = isOpen;
-            return isOpen;
+            const isExpired = test.due && new Date(test.due) < new Date();
+            const isOpen = test.opens && new Date() >= new Date(test.opens);
+            return !isExpired && isOpen;
         });
 
-        return res.status(200).json(filteredTests);
+        return res.status(200).json({
+            data: filteredTests.map(test => ({
+                ...test.toJSON(),
+                is_open: new Date(test.opens) <= new Date(),
+                is_expired: test.due ? new Date(test.due) < new Date() : false
+            }))
+        });
     } catch (error) {
         console.error(error);
         return res.status(500).json({error: "An error occurred while fetching SAT tests"});
