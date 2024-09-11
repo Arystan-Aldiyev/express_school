@@ -109,7 +109,7 @@ exports.findAnswersForAttempt = async (req, res) => {
                     max_attempts: attempt.Test.max_attempts,
                     questions: attempt.Test.questions.map(question => {
                         const userAnswer = question.Answers.find(answer => answer.question_id === question.question_id);
-                        const isMarked = question.markQuestions.length > 0 ? question.markQuestions[0].is_mark : false;
+                        const isMarked = question.markQuestions && question.markQuestions.length > 0 ? question.markQuestions[0].is_mark : false;
 
                         return {
                             question_id: question.question_id,
@@ -119,14 +119,12 @@ exports.findAnswersForAttempt = async (req, res) => {
                             explanation: question.explanation,
                             explanation_image: question.explanation_image,
                             isMarked: isMarked,
-                            answerOptions: question.answerOptions ? question.answerOptions.map(option => {
-                                return {
-                                    option_id: option.option_id,
-                                    option_text: option.option_text,
-                                    is_correct: option.is_correct,
-                                    selected: userAnswer ? parseInt(userAnswer.student_answer) === option.option_id : false
-                                };
-                            }) : []
+                            answerOptions: question.answerOptions ? question.answerOptions.map(option => ({
+                                option_id: option.option_id,
+                                option_text: option.option_text,
+                                is_correct: option.is_correct,
+                                selected: userAnswer ? parseInt(userAnswer.student_answer) === option.option_id : false
+                            })) : []
                         };
                     })
                 }
@@ -141,7 +139,6 @@ exports.findAnswersForAttempt = async (req, res) => {
         });
     }
 };
-
 
 // Delete an attempt
 exports.deleteAttempt = (req, res) => {
