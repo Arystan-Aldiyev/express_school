@@ -154,11 +154,18 @@ const testController = require('../controllers/test.controller');
  *               answer:
  *                 type: integer
  *                 description: The selected answer ID
+ *               isMarked:
+ *                 type: boolean
+ *                 description: Whether the question is marked (optional)
+ *                 example: false
+ *                 required: false  # Поле не обязательно
  *           example:
  *             - question_id: 1
  *               answer: 3
+ *               isMarked: true
  *             - question_id: 2
  *               answer: 7
+ *               isMarked: false
  *         startTime:
  *           type: string
  *           format: date-time
@@ -180,11 +187,18 @@ const testController = require('../controllers/test.controller');
  *               answer:
  *                 type: integer
  *                 description: The selected answer ID
+ *               isMarked:
+ *                 type: boolean
+ *                 description: Whether the question is marked
+ *                 example: false
+ *                 required: false
  *           example:
  *             - question_id: 1
  *               answer: 3
+ *               isMarked: true
  *             - question_id: 2
  *               answer: 7
+ *               isMarked: false
  *         startTime:
  *           type: string
  *           format: date-time
@@ -560,6 +574,10 @@ router.post('/tests/:test_id/suspend', [verifyToken], testController.suspendTest
  *     responses:
  *       200:
  *         description: Suspended test continued
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/ContinueSuspendTest'
  *       404:
  *         description: Test not found or no suspended answers found
  *       500:

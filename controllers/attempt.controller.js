@@ -4,6 +4,7 @@ const Answer = db.answer;
 const Test = db.test;
 const Question = db.question;
 const AnswerOption = db.answerOption;
+const MarkQuestion = db.questionMark
 
 // Retrieve all attempts for a user
 exports.findAllAttempts = async (req, res) => {
@@ -51,7 +52,7 @@ exports.findAnswersForAttempt = async (req, res) => {
 
     try {
         let attempt = await Attempt.findOne({
-            where: {attempt_id: attempt_id, user_id: userId},
+            where: { attempt_id: attempt_id, user_id: userId },
             include: [
                 {
                     model: Test,
@@ -64,12 +65,18 @@ exports.findAnswersForAttempt = async (req, res) => {
                                 {
                                     model: Answer,
                                     as: 'Answers',
-                                    where: {attempt_id: attempt_id, user_id: userId},
+                                    where: { attempt_id: attempt_id, user_id: userId },
                                     required: false
                                 },
                                 {
                                     model: AnswerOption,
                                     as: 'answerOptions'
+                                },
+                                {
+                                    model: MarkQuestion,
+                                    as: 'markQuestions',
+                                    where: { user_id: userId },
+                                    required: false
                                 }
                             ]
                         }
@@ -102,6 +109,8 @@ exports.findAnswersForAttempt = async (req, res) => {
                     max_attempts: attempt.Test.max_attempts,
                     questions: attempt.Test.questions.map(question => {
                         const userAnswer = question.Answers.find(answer => answer.question_id === question.question_id);
+                        const isMarked = question.markQuestions.length > 0 ? question.markQuestions[0].is_marked : false; // Получаем статус isMarked
+
                         return {
                             question_id: question.question_id,
                             question_text: question.question_text,
@@ -109,6 +118,7 @@ exports.findAnswersForAttempt = async (req, res) => {
                             image: question.image,
                             explanation: question.explanation,
                             explanation_image: question.explanation_image,
+                            isMarked: isMarked, // Добавляем поле isMarked в каждый вопрос
                             answerOptions: question.answerOptions ? question.answerOptions.map(option => {
                                 return {
                                     option_id: option.option_id,
@@ -131,6 +141,7 @@ exports.findAnswersForAttempt = async (req, res) => {
         });
     }
 };
+
 
 // Delete an attempt
 exports.deleteAttempt = (req, res) => {

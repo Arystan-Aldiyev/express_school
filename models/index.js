@@ -53,6 +53,9 @@ db.satAttempt = require('./satAttempt.model')(sequelize, Sequelize);
 db.suspendTestAnswer = require('./suspendTest.model')(sequelize, Sequelize)
 db.studentContent = require('./MarkAsDoneContent')(sequelize, Sequelize)
 db.satTestDeadline = require('./satTestDeadline.model')(sequelize, Sequelize);
+db.questionMark = require('./markQuestions.model')(sequelize, Sequelize);
+db.satQuestionMark = require('./markSatQuestions.model')(sequelize, Sequelize);
+db.markSupsendQuestion = require('./markSuspendQuestion')(sequelize, Sequelize)
 
 // Define associations
 db.group.belongsTo(db.user, {foreignKey: 'teacher_id', as: 'teacher', onDelete: 'SET NULL'});
@@ -74,6 +77,10 @@ db.group.hasMany(db.test, {foreignKey: 'group_id', onDelete: 'CASCADE'});
 
 db.question.belongsTo(db.test, {foreignKey: 'test_id', as: 'Test', onDelete: 'CASCADE'});
 db.test.hasMany(db.question, {foreignKey: 'test_id', as: 'questions', onDelete: 'CASCADE'});
+
+db.question.hasMany(db.questionMark, {foreignKey: 'question_id', as: 'markQuestions', onDelete: 'CASCADE'})
+db.questionMark.belongsTo(db.question, {foreignKey: 'question_id', as: 'question', onDelete: 'CASCADE'});
+
 
 db.answerOption.belongsTo(db.question, {foreignKey: 'question_id', as: 'Question', onDelete: 'CASCADE'});
 db.question.hasMany(db.answerOption, {foreignKey: 'question_id', as: 'answerOptions', onDelete: 'CASCADE'});
@@ -114,6 +121,17 @@ db.satQuestion.belongsTo(db.satTest, {foreignKey: 'test_id', as: 'sat_test', onD
 db.satTest.hasMany(db.satTestDeadline, {
     foreignKey: 'test_id',
     as: 'sat_test_deadlines',
+    onDelete: 'CASCADE'
+});
+
+db.satQuestion.hasMany(db.satQuestionMark, {
+    foreignKey: 'sat_question_id',
+    as: 'mark_sat_questions',
+    onDelete: 'CASCADE'
+});
+db.satQuestionMark.belongsTo(db.satQuestion, {
+    foreignKey: 'sat_question_id',
+    as: 'sat_question',
     onDelete: 'CASCADE'
 });
 

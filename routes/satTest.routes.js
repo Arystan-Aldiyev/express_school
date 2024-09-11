@@ -294,7 +294,19 @@ router.delete('/satTests/:id', [verifyToken, isAdminOrTeacher], satTestControlle
  *                 additionalProperties:
  *                   type: array
  *                   items:
- *                     $ref: '#/components/schemas/SatAnswer'
+ *                     type: object
+ *                     properties:
+ *                       question_id:
+ *                         type: integer
+ *                         description: The ID of the SAT question
+ *                       option_id:
+ *                         type: integer
+ *                         description: The ID of the selected option
+ *                       isMarked:
+ *                         type: boolean
+ *                         description: Whether the question was marked by the user
+ *                         default: false
+ *                         example: false
  *     responses:
  *       200:
  *         description: Test submitted successfully

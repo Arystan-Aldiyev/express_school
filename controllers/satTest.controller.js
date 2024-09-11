@@ -8,7 +8,8 @@ const SatAnswerOption = db.satAnswerOption;
 const Deadline = db.satTestDeadline
 const User = db.user
 const Membership = db.groupMembership;
-const Group = db.group;
+const Group = db.group
+const satQuestionMark = db.satQuestionMark
 
 exports.createSatTest = async (req, res) => {
     const {name, deadlines} = req.body;
@@ -70,7 +71,9 @@ exports.getAllSatTests = async (req, res) => {
             );
         }
 
-        const userGroupIds = user.Memberships.map(membership => membership.group_id);
+        const memberships = await Membership.findAll({where: {user_id: userId}});
+
+        const userGroupIds = memberships.map(membership => membership.group_id);
 
         const filteredTests = satTests.filter(test => {
             const relevantDeadlines = test.sat_test_deadlines.filter(deadline =>
@@ -253,20 +256,25 @@ exports.submitSatTest = async (req, res) => {
             }]
         });
 
-
         if (!test) {
             return res.status(404).json({message: 'Test not found'});
         }
-        const user = await User.findByPk(userId)
+
+        const user = await User.findByPk(userId);
         const isExpired = test.due && new Date(test.due) < Date.now();
-        const isOpened = test.opens && new Date(test.opens) >= Date.now()
+        const isOpened = test.opens && new Date(test.opens) >= Date.now();
+
         if (isExpired && user.role.toLowerCase() === 'student') {
             return res.status(400).json({message: "Test has expired"});
         }
         if (isOpened && user.role.toLowerCase() === 'student') {
-            return res.status(400).json({message: "Test has not yet opened or"})
+            return res.status(400).json({message: "Test has not yet opened"});
         }
+
         const scores = {};
+        const answersToCreate = [];
+        const marksToCreate = [];
+
         const attempt = await SatAttempt.create({
             test_id: testId,
             user_id: userId,
@@ -275,21 +283,34 @@ exports.submitSatTest = async (req, res) => {
 
         for (const section in answers) {
             scores[section] = 0;
+
             for (const answer of answers[section]) {
                 const questionId = answer.question_id;
                 const userAnswer = answer.option_id;
+                const isMarked = answer.isMarked;
+
                 const question = test.sat_questions.find(q => q.sat_question_id === questionId);
 
                 if (!question) {
                     continue;
                 }
 
-                await SatAnswer.create({
+                answersToCreate.push({
                     sat_question_id: questionId,
                     user_id: userId,
                     selected_option: userAnswer,
                     sat_attempt_id: attempt.sat_attempt_id
                 });
+
+                if (isMarked) {
+                    marksToCreate.push({
+                        sat_question_id: questionId,
+                        user_id: userId,
+                        is_mark: isMarked,
+                        sat_attempt_id: attempt.sat_attempt_id
+                    });
+                }
+
                 if (question.question_type === 'single' || question.question_type === 'multiply') {
                     const correctOptions = question.sat_answer_options.filter(option => option.is_correct);
                     const isCorrect = correctOptions.some(correctOption => userAnswer === correctOption.sat_answer_option_id);
@@ -307,6 +328,11 @@ exports.submitSatTest = async (req, res) => {
                     }
                 }
             }
+        }
+
+        await SatAnswer.bulkCreate(answersToCreate);
+        if (marksToCreate.length > 0) {
+            await satQuestionMark.bulkCreate(marksToCreate);
         }
 
         const totalScore = Object.values(scores).reduce((acc, score) => acc + score, 0);

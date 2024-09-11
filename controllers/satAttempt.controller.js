@@ -4,6 +4,7 @@ const SatAnswer = db.satAnswer;
 const SatTest = db.satTest;
 const SatQuestion = db.satQuestion;
 const SatAnswerOption = db.satAnswerOption;
+const satQuestionMark = db.satQuestionMark
 
 // Retrieve all attempts for a user
 exports.findAllAttempts = (req, res) => {
@@ -86,6 +87,12 @@ exports.findAnswersForAttempt = async (req, res) => {
                                 {
                                     model: SatAnswerOption,
                                     as: 'sat_answer_options'
+                                },
+                                {
+                                    model: satQuestionMark,
+                                    as: 'mark_sat_questions',
+                                    where: {user_id: userId, sat_attempt_id: attempt_id},
+                                    required: false
                                 }
                             ]
                         }
@@ -129,6 +136,8 @@ exports.findAnswersForAttempt = async (req, res) => {
                     max_attempts: attempt.sat_test.max_attempts,
                     sat_questions: attempt.sat_test.sat_questions.map(question => {
                         const userAnswer = question.sat_answers.find(answer => answer.sat_question_id === question.sat_question_id);
+                        const questionMark = question.mark_sat_questions[0];
+
                         return {
                             sat_question_id: question.sat_question_id,
                             question_text: question.question_text,
@@ -137,6 +146,7 @@ exports.findAnswersForAttempt = async (req, res) => {
                             explanation: question.explanation,
                             explanation_image: question.explanation_image,
                             section: question.section,
+                            is_marked: questionMark ? questionMark.is_mark : false,
                             sat_answer_options: question.sat_answer_options ? question.sat_answer_options.map(option => ({
                                 sat_answer_option_id: option.sat_answer_option_id,
                                 option_text: option.option_text,

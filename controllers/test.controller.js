@@ -7,6 +7,8 @@ const Attempt = db.attempt;
 const Answer = db.answer;
 const SuspendTestAnswer = db.suspendTestAnswer;
 const User = db.user
+const MarkQuestion = db.questionMark
+const MarkSuspendQuestion = db.markSupsendQuestion
 
 // Create and Save a new Test
 exports.createTest = async (req, res) => {
@@ -183,7 +185,7 @@ exports.findTestWithDetails = async (req, res) => {
             });
         }
     } catch (err) {
-        console.error("Error retrieving Test with id=" + id, err); // Log the actual error
+        console.error("Error retrieving Test with id=" + id, err);
         res.status(500).send({
             message: "Error retrieving Test with id=" + id
         });
@@ -263,7 +265,8 @@ exports.submitTest = async (req, res) => {
         if (!test) {
             return res.status(404).json({message: 'Test not found'});
         }
-        const user = await User.findByPk(userId)
+
+        const user = await User.findByPk(userId);
         if (new Date(test.time_open) > new Date() && user.role.toLowerCase() === 'student') {
             return res.status(200).json({message: "Test is not yet open"});
         }
@@ -281,8 +284,8 @@ exports.submitTest = async (req, res) => {
 
         let score = 0;
         const endTime = new Date();
-
         const parsedStartTime = new Date(startTime);
+
         if (isNaN(parsedStartTime.getTime())) {
             return res.status(400).json({message: 'Invalid start time'});
         }
@@ -295,16 +298,18 @@ exports.submitTest = async (req, res) => {
             score: 0
         });
 
+        // Массив для batch-insert отмеченных вопросов
+        const marksToCreate = [];
+
         for (const answer of answers) {
             const questionId = answer.question_id;
             const userAnswer = answer.answer;
-            console.log(userAnswer)
-            const question = test.questions.find(q => q.question_id === questionId);
-            if (!question) {
-                continue;
-            }
-            console.log(JSON.stringify(question, null, 2))
+            const isMarked = answer.isMarked || false;
 
+            const question = test.questions.find(q => q.question_id === questionId);
+            if (!question) continue;
+
+            // Сохранение ответа на вопрос
             await Answer.create({
                 question_id: questionId,
                 user_id: userId,
@@ -312,14 +317,22 @@ exports.submitTest = async (req, res) => {
                 attempt_id: attempt.attempt_id
             });
 
+            // Если вопрос был отмечен, добавляем его в массив для batch-insert
+            if (isMarked) {
+                marksToCreate.push({
+                    questionId: questionId,
+                    userId: userId,
+                    attemptId: attempt.attempt_id,
+                    is_marked: true
+                });
+            }
+
+            // Логика для проверки правильности ответа
             if (question.question_type === 'single' || question.question_type === 'multiply') {
                 const correctOptions = question.answerOptions.filter(option => option.is_correct);
                 const isCorrect = correctOptions.some(correctOption => userAnswer === correctOption.option_id);
                 if (isCorrect) {
                     score++;
-                    console.log(`Correct answer for question ID: ${questionId}`);
-                } else {
-                    console.log(`Incorrect answer for question ID: ${questionId}`);
                 }
             } else if (question.question_type === 'writing') {
                 const correctOption = question.answerOptions.find(option => option.is_correct);
@@ -328,12 +341,14 @@ exports.submitTest = async (req, res) => {
                     const normalizedCorrectAnswer = correctOption.option_text.trim().toLowerCase();
                     if (normalizedUserAnswer === normalizedCorrectAnswer) {
                         score++;
-                        console.log(`Correct answer for writing question ID: ${questionId}`);
-                    } else {
-                        console.log(`Incorrect answer for writing question ID: ${questionId}`);
                     }
                 }
             }
+        }
+
+        // Сохраняем все отмеченные вопросы за один запрос
+        if (marksToCreate.length > 0) {
+            await MarkQuestion.bulkCreate(marksToCreate);
         }
 
         attempt.score = score;
@@ -345,13 +360,16 @@ exports.submitTest = async (req, res) => {
             where: {test_id: testId, user_id: userId}
         });
 
+        await MarkSuspendQuestion.destroy({
+            where: {test_id: testId, user_id: userId}
+        });
+
         res.json({score, timeTaken});
     } catch (error) {
         console.error(`Error submitting test with id=${testId}`, error);
         res.status(500).json({message: 'Server error', error});
     }
 };
-
 
 exports.suspendTest = async (req, res) => {
     const testId = req.params.test_id;
@@ -379,21 +397,22 @@ exports.suspendTest = async (req, res) => {
 
         const suspendTime = new Date();
 
-        await SuspendTestAnswer.destroy({
-            where: {
-                user_id: userId,
-                test_id: testId
-            }
-        });
+        // Удаляем предыдущие приостановленные ответы и отметки
+        await SuspendTestAnswer.destroy({where: {user_id: userId, test_id: testId}});
+        await MarkSuspendQuestion.destroy({where: {user_id: userId, test_id: testId}});
 
+        const marksToCreate = [];
+
+        // Сохраняем приостановленные ответы и статус isMarked
         for (const answer of answers) {
             const questionId = answer.question_id;
             const userAnswer = answer.answer;
-            const question = test.questions.find(q => q.question_id === questionId);
-            if (!question) {
-                continue;
-            }
+            const isMarked = answer.isMarked || false;  // Получаем статус isMarked
 
+            const question = test.questions.find(q => q.question_id === questionId);
+            if (!question) continue;
+
+            // Сохраняем приостановленные ответы
             await SuspendTestAnswer.create({
                 question_id: questionId,
                 user_id: userId,
@@ -402,6 +421,21 @@ exports.suspendTest = async (req, res) => {
                 start_time: new Date(startTime),
                 suspend_time: suspendTime
             });
+
+            // Если вопрос был отмечен, сохраняем это в markSuspendQuestion
+            if (isMarked) {
+                marksToCreate.push({
+                    question_id: questionId,
+                    user_id: userId,
+                    test_id: testId,
+                    is_marked: true
+                });
+            }
+        }
+
+        // Сохраняем все отметки за один запрос
+        if (marksToCreate.length > 0) {
+            await MarkSuspendQuestion.bulkCreate(marksToCreate);
         }
 
         res.status(200).json({message: 'Test suspended successfully'});
@@ -409,7 +443,8 @@ exports.suspendTest = async (req, res) => {
         console.error(error);
         res.status(500).json({message: 'An error occurred while suspending the test'});
     }
-}
+};
+
 
 exports.continueSuspendTest = async (req, res) => {
     const testId = req.params.test_id;
@@ -421,7 +456,10 @@ exports.continueSuspendTest = async (req, res) => {
             return res.status(404).json({message: 'Test not found'});
         }
 
-        const suspendAnswers = await SuspendTestAnswer.findAll({where: {test_id: testId, user_id: userId}});
+        const suspendAnswers = await SuspendTestAnswer.findAll({
+            where: {test_id: testId, user_id: userId}
+        });
+
         if (suspendAnswers.length === 0) {
             return res.status(404).json({message: "You do not have any suspended answers"});
         }
@@ -444,6 +482,12 @@ exports.continueSuspendTest = async (req, res) => {
                             as: 'suspendTestAnswers',
                             where: {user_id: userId},
                             required: false
+                        },
+                        {
+                            model: MarkSuspendQuestion, // Включаем модель для проверки отметки
+                            as: 'markSuspendQuestions',
+                            where: {user_id: userId, test_id: testId},
+                            required: false
                         }
                     ]
                 }
@@ -463,6 +507,10 @@ exports.continueSuspendTest = async (req, res) => {
             max_attempts: testWithOptions.max_attempts,
             questions: testWithOptions.questions.map(question => {
                 const suspendAnswer = question.suspendTestAnswers.find(answer => answer.question_id === question.question_id);
+
+                // Получаем статус isMarked из markSuspendQuestions
+                const isMarked = question.markSuspendQuestions.length > 0 ? question.markSuspendQuestions[0].is_marked : false;
+
                 return {
                     question_id: question.question_id,
                     question_text: question.question_text,
@@ -470,10 +518,10 @@ exports.continueSuspendTest = async (req, res) => {
                     image: question.image,
                     question_type: question.question_type,
                     student_answer: suspendAnswer ? suspendAnswer.student_answer : null,
+                    is_marked: isMarked,  // Возвращаем статус is_marked
                     answerOptions: question.answerOptions.map(option => ({
                         option_id: option.option_id,
                         option_text: option.option_text,
-                        is_correct: option.is_correct,
                         selected: suspendAnswer ? parseInt(suspendAnswer.student_answer) === option.option_id : false
                     }))
                 };
@@ -485,4 +533,4 @@ exports.continueSuspendTest = async (req, res) => {
         console.log(err);
         return res.status(500).json({message: 'Something went wrong'});
     }
-}
+};
