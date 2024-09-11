@@ -52,7 +52,7 @@ exports.findAnswersForAttempt = async (req, res) => {
 
     try {
         let attempt = await Attempt.findOne({
-            where: { attempt_id: attempt_id, user_id: userId },
+            where: {attempt_id: attempt_id, user_id: userId},
             include: [
                 {
                     model: Test,
@@ -65,7 +65,7 @@ exports.findAnswersForAttempt = async (req, res) => {
                                 {
                                     model: Answer,
                                     as: 'Answers',
-                                    where: { attempt_id: attempt_id, user_id: userId },
+                                    where: {attempt_id: attempt_id, user_id: userId},
                                     required: false
                                 },
                                 {
@@ -75,7 +75,7 @@ exports.findAnswersForAttempt = async (req, res) => {
                                 {
                                     model: MarkQuestion,
                                     as: 'markQuestions',
-                                    where: { user_id: userId },
+                                    where: {user_id: userId, attempt_id: attempt_id},
                                     required: false
                                 }
                             ]

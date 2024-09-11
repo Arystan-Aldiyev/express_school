@@ -320,7 +320,7 @@ exports.submitTest = async (req, res) => {
                     questionId: questionId,
                     userId: userId,
                     attemptId: attempt.attempt_id,
-                    is_mark: true
+                    is_mark: isMarked
                 });
             }
 
@@ -419,7 +419,7 @@ exports.suspendTest = async (req, res) => {
                     question_id: questionId,
                     user_id: userId,
                     test_id: testId,
-                    is_mark: true
+                    is_marked: true
                 });
             }
         }
@@ -497,7 +497,7 @@ exports.continueSuspendTest = async (req, res) => {
             max_attempts: testWithOptions.max_attempts,
             questions: testWithOptions.questions.map(question => {
                 const suspendAnswer = question.suspendTestAnswers.find(answer => answer.question_id === question.question_id);
-                const isMarked = question.markSuspendQuestions.length > 0 ? question.markSuspendQuestions[0].is_mark : false;
+                const isMarked = question.markSuspendQuestions.length > 0 ? question.markSuspendQuestions[0].is_marked : false;
 
                 return {
                     question_id: question.question_id,
