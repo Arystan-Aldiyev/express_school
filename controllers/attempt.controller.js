@@ -109,7 +109,7 @@ exports.findAnswersForAttempt = async (req, res) => {
                     max_attempts: attempt.Test.max_attempts,
                     questions: attempt.Test.questions.map(question => {
                         const userAnswer = question.Answers.find(answer => answer.question_id === question.question_id);
-                        const isMarked = question.markQuestions.length > 0 ? question.markQuestions[0].is_marked : false; // Получаем статус isMarked
+                        const isMarked = question.markQuestions.length > 0 ? question.markQuestions[0].is_mark : false;
 
                         return {
                             question_id: question.question_id,
@@ -118,7 +118,7 @@ exports.findAnswersForAttempt = async (req, res) => {
                             image: question.image,
                             explanation: question.explanation,
                             explanation_image: question.explanation_image,
-                            isMarked: isMarked, // Добавляем поле isMarked в каждый вопрос
+                            isMarked: isMarked,
                             answerOptions: question.answerOptions ? question.answerOptions.map(option => {
                                 return {
                                     option_id: option.option_id,

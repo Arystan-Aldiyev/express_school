@@ -298,7 +298,6 @@ exports.submitTest = async (req, res) => {
             score: 0
         });
 
-        // Массив для batch-insert отмеченных вопросов
         const marksToCreate = [];
 
         for (const answer of answers) {
@@ -309,7 +308,6 @@ exports.submitTest = async (req, res) => {
             const question = test.questions.find(q => q.question_id === questionId);
             if (!question) continue;
 
-            // Сохранение ответа на вопрос
             await Answer.create({
                 question_id: questionId,
                 user_id: userId,
@@ -317,17 +315,15 @@ exports.submitTest = async (req, res) => {
                 attempt_id: attempt.attempt_id
             });
 
-            // Если вопрос был отмечен, добавляем его в массив для batch-insert
             if (isMarked) {
                 marksToCreate.push({
                     questionId: questionId,
                     userId: userId,
                     attemptId: attempt.attempt_id,
-                    is_marked: true
+                    is_mark: true
                 });
             }
 
-            // Логика для проверки правильности ответа
             if (question.question_type === 'single' || question.question_type === 'multiply') {
                 const correctOptions = question.answerOptions.filter(option => option.is_correct);
                 const isCorrect = correctOptions.some(correctOption => userAnswer === correctOption.option_id);
@@ -346,7 +342,6 @@ exports.submitTest = async (req, res) => {
             }
         }
 
-        // Сохраняем все отмеченные вопросы за один запрос
         if (marksToCreate.length > 0) {
             await MarkQuestion.bulkCreate(marksToCreate);
         }
@@ -397,13 +392,11 @@ exports.suspendTest = async (req, res) => {
 
         const suspendTime = new Date();
 
-        // Удаляем предыдущие приостановленные ответы и отметки
         await SuspendTestAnswer.destroy({where: {user_id: userId, test_id: testId}});
         await MarkSuspendQuestion.destroy({where: {user_id: userId, test_id: testId}});
 
         const marksToCreate = [];
 
-        // Сохраняем приостановленные ответы и статус isMarked
         for (const answer of answers) {
             const questionId = answer.question_id;
             const userAnswer = answer.answer;
@@ -412,7 +405,6 @@ exports.suspendTest = async (req, res) => {
             const question = test.questions.find(q => q.question_id === questionId);
             if (!question) continue;
 
-            // Сохраняем приостановленные ответы
             await SuspendTestAnswer.create({
                 question_id: questionId,
                 user_id: userId,
@@ -422,18 +414,16 @@ exports.suspendTest = async (req, res) => {
                 suspend_time: suspendTime
             });
 
-            // Если вопрос был отмечен, сохраняем это в markSuspendQuestion
             if (isMarked) {
                 marksToCreate.push({
                     question_id: questionId,
                     user_id: userId,
                     test_id: testId,
-                    is_marked: true
+                    is_mark: true
                 });
             }
         }
 
-        // Сохраняем все отметки за один запрос
         if (marksToCreate.length > 0) {
             await MarkSuspendQuestion.bulkCreate(marksToCreate);
         }
@@ -484,7 +474,7 @@ exports.continueSuspendTest = async (req, res) => {
                             required: false
                         },
                         {
-                            model: MarkSuspendQuestion, // Включаем модель для проверки отметки
+                            model: MarkSuspendQuestion,
                             as: 'markSuspendQuestions',
                             where: {user_id: userId, test_id: testId},
                             required: false
@@ -507,9 +497,7 @@ exports.continueSuspendTest = async (req, res) => {
             max_attempts: testWithOptions.max_attempts,
             questions: testWithOptions.questions.map(question => {
                 const suspendAnswer = question.suspendTestAnswers.find(answer => answer.question_id === question.question_id);
-
-                // Получаем статус isMarked из markSuspendQuestions
-                const isMarked = question.markSuspendQuestions.length > 0 ? question.markSuspendQuestions[0].is_marked : false;
+                const isMarked = question.markSuspendQuestions.length > 0 ? question.markSuspendQuestions[0].is_mark : false;
 
                 return {
                     question_id: question.question_id,
@@ -518,7 +506,7 @@ exports.continueSuspendTest = async (req, res) => {
                     image: question.image,
                     question_type: question.question_type,
                     student_answer: suspendAnswer ? suspendAnswer.student_answer : null,
-                    is_marked: isMarked,  // Возвращаем статус is_marked
+                    is_marked: isMarked,
                     answerOptions: question.answerOptions.map(option => ({
                         option_id: option.option_id,
                         option_text: option.option_text,
