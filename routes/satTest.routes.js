@@ -16,24 +16,14 @@ const satTestController = require('../controllers/satTest.controller');
  *       type: object
  *       required:
  *         - name
- *         - opens
- *         - due
  *       properties:
  *         sat_test_id:
  *           type: integer
  *         name:
  *           type: string
- *         opens:
- *           type: string
- *           format: date-time
- *         due:
- *           type: string
- *           format: date-time
  *       example:
  *         sat_test_id: 1
  *         name: "Math Test"
- *         opens: "2024-07-21T09:00:00Z"
- *         due: "2024-07-21T11:00:00Z"
  *     SatAnswer:
  *       type: object
  *       properties:
@@ -52,7 +42,7 @@ const satTestController = require('../controllers/satTest.controller');
  *         text:
  *           type: string
  *         section:
- *           type: string,
+ *           type: string
  *         question_type:
  *           type: string
  *       example:
@@ -92,7 +82,27 @@ const satTestController = require('../controllers/satTest.controller');
  *       content:
  *         application/json:
  *           schema:
- *             $ref: '#/components/schemas/SatTest'
+ *             type: object
+ *             properties:
+ *               name:
+ *                 type: string
+ *                 example: "Math Test"
+ *               deadlines:
+ *                 type: array
+ *                 items:
+ *                   type: object
+ *                   properties:
+ *                     group_id:
+ *                       type: integer
+ *                       example: 1
+ *                     open:
+ *                       type: string
+ *                       format: date-time
+ *                       example: "2024-09-15T09:00:00Z"
+ *                     due:
+ *                       type: string
+ *                       format: date-time
+ *                       example: "2024-09-15T11:00:00Z"
  *     responses:
  *       201:
  *         description: SAT test created
@@ -103,13 +113,14 @@ const satTestController = require('../controllers/satTest.controller');
  *       500:
  *         description: Server error
  */
+
 router.post('/satTests', [verifyToken, isAdminOrTeacher], satTestController.createSatTest);
 
 /**
  * @swagger
  * /api/satTests:
  *   get:
- *     summary: Retrieve all SAT tests by group ID
+ *     summary: Retrieve all SAT tests
  *     tags: [SAT Tests]
  *     security:
  *       - bearerAuth: []
@@ -183,12 +194,6 @@ router.get('/satTests/:id', [verifyToken], satTestController.getSatTestById);
  *                   type: integer
  *                 name:
  *                   type: string
- *                 opens:
- *                   type: string
- *                   format: date-time
- *                 due:
- *                   type: string
- *                   format: date-time
  *                 questionsBySection:
  *                   type: object
  *                   additionalProperties:

@@ -8,21 +8,18 @@ module.exports = (sequelize, DataTypes) => {
         name: {
             type: DataTypes.TEXT,
             allowNull: false,
-        },
-        opens: {
-            type: DataTypes.DATE,
-            allowNull: false,
-        },
-        due: {
-            type: DataTypes.DATE,
-            allowNull: false,
-        },
+        }
     }, {
         tableName: 'sat_tests',
         timestamps: true,
     });
 
     SatTest.associate = models => {
+        SatTest.hasMany(models.SatTestDeadline, {
+            foreignKey: 'test_id',
+            as: 'sat_test_deadlines',
+            onDelete: 'CASCADE'
+        });
         SatTest.hasMany(models.SatQuestion, {foreignKey: 'test_id', as: 'sat_questions'});
         SatTest.hasMany(models.SatAttempt, {foreignKey: 'test_id', as: 'sat_attempts'});
     };

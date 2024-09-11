@@ -17,7 +17,7 @@ const satTestRoutes = require('./routes/satTest.routes');
 const satQuestionRoutes = require('./routes/satQuestion.routes');
 const satAnswerOptionRoutes = require('./routes/satAnswerOption.routes')
 const satAttemptRoutes = require('./routes/satAttempt.routes')
-
+const satTestDeadline = require('./routes/satTestDeadline.routes');
 const router = express.Router();
 
 router.use('/auth', authRoutes);
@@ -38,5 +38,6 @@ router.use('/', satTestRoutes)
 router.use('/', satQuestionRoutes)
 router.use('/', satAnswerOptionRoutes)
 router.use('/', satAttemptRoutes)
+router.use('/', satTestDeadline)
 
 module.exports = router;

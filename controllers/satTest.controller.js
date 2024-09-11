@@ -5,20 +5,36 @@ const SatAttempt = db.satAttempt;
 const SatAnswer = db.satAnswer;
 const SatQuestion = db.satQuestion;
 const SatAnswerOption = db.satAnswerOption;
+const Deadline = db.satTestDeadline
 const User = db.user
+const Membership = db.groupMembership;
+const Group = db.group;
 
 exports.createSatTest = async (req, res) => {
-    const {name, opens, due} = req.body;
+    const {name, deadlines} = req.body;
 
+    const transaction = await db.sequelize.transaction();
     try {
         const satTest = await SatTest.create({
             name,
-            opens,
-            due,
-        });
+        }, {transaction});
+
+        if (deadlines && Array.isArray(deadlines)) {
+            const deadlineData = deadlines.map(deadline => ({
+                ...deadline,
+                test_id: satTest.sat_test_id
+            }));
+
+            await Deadline.bulkCreate(deadlineData, {transaction});
+        }
+
+        await transaction.commit();
+
         res.status(201).json(satTest);
     } catch (error) {
-        res.status(500).json({error: error.message});
+        await transaction.rollback();
+        console.error("Error creating SAT test:", error);
+        res.status(500).json({error: "An error occurred while creating the SAT test"});
     }
 };
 
@@ -26,32 +42,51 @@ exports.createSatTest = async (req, res) => {
 exports.getAllSatTests = async (req, res) => {
     const userId = req.userId;
     try {
-        const user = await User.findByPk(userId);
-        const satTests = await SatTest.findAll();
+        const user = await User.findByPk(userId, {
+            include: [{
+                model: Membership,
+                required: false
+            }]
+        });
 
-        if (user.role.toLowerCase() !== 'student') {
+        if (!user) {
+            return res.status(404).json({error: "User not found"});
+        }
+
+        const satTests = await SatTest.findAll({
+            include: [{
+                model: Deadline,
+                as: 'sat_test_deadlines'
+            }]
+        });
+
+        if (user.role.toLowerCase() === 'admin' || user.role.toLowerCase() === 'teacher') {
             return res.status(200).json(
                 satTests.map(test => ({
                     ...test.toJSON(),
-                    is_open: new Date(test.opens) <= new Date(),
-                    is_expired: test.due ? new Date(test.due) < new Date() : false
+                    is_open: test.sat_test_deadlines.some(deadline => new Date(deadline.open) <= new Date()),
+                    is_expired: test.sat_test_deadlines.every(deadline => new Date(deadline.due) < new Date())
                 }))
             );
         }
 
+        const userGroupIds = user.Memberships.map(membership => membership.group_id);
+
         const filteredTests = satTests.filter(test => {
-            const isExpired = test.due && new Date(test.due) < new Date();
-            const isOpen = test.opens && new Date() >= new Date(test.opens);
-            return !isExpired && isOpen;
+            const relevantDeadlines = test.sat_test_deadlines.filter(deadline =>
+                userGroupIds.includes(deadline.group_id) && new Date(deadline.due) > new Date()
+            );
+            return relevantDeadlines.length > 0;
         });
 
         return res.status(200).json(
             filteredTests.map(test => ({
                 ...test.toJSON(),
-                is_open: new Date(test.opens) <= new Date(),
-                is_expired: test.due ? new Date(test.due) < new Date() : false
+                is_open: test.sat_test_deadlines.some(deadline => new Date(deadline.open) <= new Date()),
+                is_expired: test.sat_test_deadlines.every(deadline => new Date(deadline.due) < new Date())
             }))
         );
+
     } catch (error) {
         console.error(error);
         return res.status(500).json({error: "An error occurred while fetching SAT tests"});
@@ -162,7 +197,7 @@ exports.getSatTestById = async (req, res) => {
 // Update a SAT test by ID
 exports.updateSatTest = async (req, res) => {
     const {id} = req.params;
-    const {name, opens, due} = req.body;
+    const {name} = req.body;
 
     try {
         const satTest = await SatTest.findByPk(id);
@@ -170,16 +205,17 @@ exports.updateSatTest = async (req, res) => {
             return res.status(404).json({error: 'SAT test not found'});
         }
 
-        satTest.name = name;
-        satTest.opens = opens;
-        satTest.due = due;
-        await satTest.save();
+        if (name) {
+            satTest.name = name;
+        }
 
+        await satTest.save();
         res.status(200).json(satTest);
     } catch (error) {
         res.status(500).json({error: error.message});
     }
 };
+
 
 // Delete a SAT test by ID
 exports.deleteSatTest = async (req, res) => {

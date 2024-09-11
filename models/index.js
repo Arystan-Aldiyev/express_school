@@ -52,6 +52,7 @@ db.satAnswer = require('./satAnswer.model')(sequelize, Sequelize);
 db.satAttempt = require('./satAttempt.model')(sequelize, Sequelize);
 db.suspendTestAnswer = require('./suspendTest.model')(sequelize, Sequelize)
 db.studentContent = require('./MarkAsDoneContent')(sequelize, Sequelize)
+db.satTestDeadline = require('./satTestDeadline.model')(sequelize, Sequelize);
 
 // Define associations
 db.group.belongsTo(db.user, {foreignKey: 'teacher_id', as: 'teacher', onDelete: 'SET NULL'});
@@ -110,6 +111,18 @@ db.user.hasMany(db.dashboardAnnouncement, {foreignKey: 'author_id', onDelete: 'C
 
 db.satTest.hasMany(db.satQuestion, {foreignKey: 'test_id', as: 'sat_questions', onDelete: 'CASCADE'});
 db.satQuestion.belongsTo(db.satTest, {foreignKey: 'test_id', as: 'sat_test', onDelete: 'CASCADE'});
+db.satTest.hasMany(db.satTestDeadline, {
+    foreignKey: 'test_id',
+    as: 'sat_test_deadlines',
+    onDelete: 'CASCADE'
+});
+
+db.satTestDeadline.belongsTo(db.satTest, {
+    foreignKey: 'test_id',
+    as: 'sat_test',
+    onDelete: 'CASCADE'
+});
+
 
 db.satQuestion.hasMany(db.satAnswerOption, {foreignKey: 'question_id', as: 'sat_answer_options', onDelete: 'CASCADE'});
 db.satAnswerOption.belongsTo(db.satQuestion, {foreignKey: 'question_id', as: 'sat_question', onDelete: 'CASCADE'});
@@ -134,5 +147,6 @@ db.question.hasMany(db.suspendTestAnswer, {foreignKey: 'question_id', as: 'suspe
 
 db.suspendTestAnswer.belongsTo(db.user, {foreignKey: 'user_id', as: 'User', onDelete: 'CASCADE'});
 db.user.hasMany(db.suspendTestAnswer, {foreignKey: 'user_id', as: 'SuspendTestAnswers', onDelete: 'CASCADE'});
+
 
 module.exports = db;
