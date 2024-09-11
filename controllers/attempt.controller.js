@@ -109,6 +109,7 @@ exports.findAnswersForAttempt = async (req, res) => {
                     max_attempts: attempt.Test.max_attempts,
                     questions: attempt.Test.questions.map(question => {
                         const userAnswer = question.Answers.find(answer => answer.question_id === question.question_id);
+
                         const isMarked = question.markQuestions && question.markQuestions.length > 0 ? question.markQuestions[0].is_mark : false;
 
                         return {
